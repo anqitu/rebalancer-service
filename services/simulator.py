@@ -33,6 +33,9 @@ class Simulator:
         self.__set_available_bike_count_after_rebalance()
 
         self.cycle.set_trips(self.__calculate_trips())
+        self.cycle.set_moved_bike_count(self.__calculate_moved_bike_count())
+        self.cycle.set_rebalanced_bike_count(self.__calculate_rebalanced_bike_count())
+        self.cycle.set_rebalance_cost(self.__calculate_rebalance_cost())
         self.cycle.set_cumulative_moved_bike_count(self.__calculate_cumulative_moved_bike_count())
         self.cycle.set_cumulative_rebalanced_bike_count(self.__calculate_cumulative_rebalanced_bike_count())
         self.cycle.set_cumulative_rebalance_cost(self.__calculate_cumulative_rebalance_cost())
@@ -43,7 +46,6 @@ class Simulator:
         self.station_snapshots = [StationSnapshot(station) for station in self.stations]
         self.cycle.set_station_snapshots(self.station_snapshots)
         self.__set_stations_data()
-
 
     def __get_stations_from_json(self):
         with open('data/london_stations.json') as json_file:
@@ -72,6 +74,15 @@ class Simulator:
         trips = [Trip(self.stations[0], self.stations[1])]
         [trip.set_rebalanced_bike_count(10) for trip in trips]
         return trips
+
+    def __calculate_moved_bike_count(self):
+        return 100
+
+    def __calculate_rebalanced_bike_count(self):
+        return 100
+
+    def __calculate_rebalance_cost(self):
+        return 100
 
     def __calculate_cumulative_moved_bike_count(self):
         return 100

@@ -1,8 +1,11 @@
+import uuid
+
 from models.station import Station
 
 class Trip:
 
     def __init__(self, source, destination):
+        self.id = uuid.uuid4()
         self.source = source
         self.destination = destination
         self.distance = self.__calculate_distance()
