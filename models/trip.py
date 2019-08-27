@@ -12,7 +12,7 @@ class Trip:
 
     def set_rebalanced_bike_count(self, rebalanced_bike_count):
         self.rebalanced_bike_count = rebalanced_bike_count
-        self.cost = self.__calculate_cost()
+        self.rebalance_cost = self.__calculate_cost()
 
     def __calculate_distance(self):
         return 20
