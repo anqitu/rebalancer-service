@@ -22,12 +22,12 @@ class StationSnapshot:
 
     def set_target_bike_count(self, target_bike_count):
         self.target_bike_count = target_bike_count
+        self.target_rebalance_bike_count = self.target_bike_count - self.available_bike_count_before_rebalance
 
     def set_rebalanced_bike_count(self, rebalanced_bike_count):
         self.rebalanced_bike_count = rebalanced_bike_count
-
-    def set_available_bike_count_after_rebalance(self, available_bike_count_after_rebalance):
-        self.available_bike_count_after_rebalance = available_bike_count_after_rebalance
+        self.available_bike_count_after_rebalance = self.available_bike_count_before_rebalance \
+                                                    + self.rebalanced_bike_count
         self.current_bike_count = available_bike_count_after_rebalance
 
     def set_actual_incoming_bike_count(self, actual_incoming_bike_count):
