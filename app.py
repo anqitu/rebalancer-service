@@ -14,8 +14,9 @@ def get_stations_response():
         station = station_snapshot.station
         station_response['name'] = station.name
         station_response['id'] = station.id
-        station_response['count'] = station_snapshot.available_bike_count_before_rebalance
         station_response['coordinates'] = station.coordinates
+        station_response['capacity'] = station.capacity
+        station_response['count'] = station_snapshot.available_bike_count_before_rebalance
         stations.append(station_response)
 
     return stations
@@ -28,18 +29,18 @@ def get_initialize_response():
 
     return initialize_response
 
-def get_trips_response():
-    trips = []
+def get_rebalance_schedules_response():
+    rebalance_schedules = []
 
-    for trip in simulator.simulation.cycles[-1].trips:
-        trip_data = {}
-        trip_data['id'] = trip.id
-        trip_data['source_id'] = trip.source.id
-        trip_data['destination_id'] = trip.destination.id
-        trip_data['count'] = trip.rebalanced_bike_count
-        trips.append(trip_data)
+    for rebalance_schedule in simulator.simulation.cycles[-1].rebalance_schedules:
+        rebalance_schedule_response = {}
+        rebalance_schedule_response['id'] = rebalance_schedule.id
+        rebalance_schedule_response['source_id'] = rebalance_schedule.source.id
+        rebalance_schedule_response['destination_id'] = rebalance_schedule.destination.id
+        rebalance_schedule_response['count'] = rebalance_schedule.rebalanced_bike_count
+        rebalance_schedules.append(rebalance_schedule_response)
 
-    return trips
+    return rebalance_schedules
 
 def get_cycle_snapshot():
     cycle_snapshot = {}
@@ -51,19 +52,13 @@ def get_cycle_snapshot():
     cycle_snapshot['moved_bike_count'] = current_cycle.moved_bike_count
     cycle_snapshot['rebalanced_bike_count'] = current_cycle.rebalanced_bike_count
     cycle_snapshot['rebalance_cost'] = current_cycle.rebalance_cost
+    cycle_snapshot['drift'] = current_cycle.drift
     cycle_snapshot['cumulative_moved_bike_count'] = current_cycle.cumulative_moved_bike_count
     cycle_snapshot['cumulative_rebalanced_bike_count'] = current_cycle.cumulative_rebalanced_bike_count
     cycle_snapshot['cumulative_rebalance_cost'] = current_cycle.cumulative_rebalance_cost
+    cycle_snapshot['cumulative_drift'] = current_cycle.cumulative_drift
 
     return cycle_snapshot
-
-def get_rebalance_response():
-    rebalance_response = {}
-
-    rebalance_response['cycle_snapshot'] = get_cycle_snapshot()
-    rebalance_response['trips'] = get_trips_response()
-
-    return rebalance_response
 
 def get_station_snapshots():
     station_snapshots = []
@@ -72,10 +67,19 @@ def get_station_snapshots():
         station_snapshot = {}
         station = snapshot.station
         station_snapshot['id'] = station.id
-        station_snapshot['count'] = snapshot.available_bike_count_before_rebalance
+        station_snapshot['count'] = snapshot.current_bike_count
         station_snapshots.append(station_snapshot)
 
     return station_snapshots
+
+def get_rebalance_response():
+    rebalance_response = {}
+
+    rebalance_response['rebalance_schedules'] = get_rebalance_schedules_response()
+    rebalance_response['cycle_snapshot'] = get_cycle_snapshot()
+    rebalance_response['station_snapshots'] = get_station_snapshots()
+
+    return rebalance_response
 
 def get_simulate_ride_response():
     cycle_response = {}

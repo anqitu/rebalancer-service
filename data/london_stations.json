@@ -2,7 +2,7 @@
     {
         "name": "Putney Pier, Wandsworth",
         "id": 302,
-        "bike_stands": 28,
+        "capacity": 28,
         "coordinates": [
             -0.21657300000000002,
             51.466907
@@ -11,7 +11,7 @@
     {
         "name": "Putney Bridge Station, Fulham",
         "id": 607,
-        "bike_stands": 21,
+        "capacity": 21,
         "coordinates": [
             -0.210279,
             51.468814
@@ -20,7 +20,7 @@
     {
         "name": "Morie Street, Wandsworth",
         "id": 629,
-        "bike_stands": 28,
+        "capacity": 28,
         "coordinates": [
             -0.190184,
             51.459953000000006
@@ -29,7 +29,7 @@
     {
         "name": "South Park, Sands End",
         "id": 636,
-        "bike_stands": 27,
+        "capacity": 27,
         "coordinates": [
             -0.193502,
             51.467064
@@ -38,7 +38,7 @@
     {
         "name": "Peterborough Road, Sands End",
         "id": 648,
-        "bike_stands": 30,
+        "capacity": 30,
         "coordinates": [
             -0.196274,
             51.46904
@@ -47,7 +47,7 @@
     {
         "name": "Broomhouse Lane, Parsons Green",
         "id": 656,
-        "bike_stands": 29,
+        "capacity": 29,
         "coordinates": [
             -0.19913499999999998,
             51.468418
@@ -56,7 +56,7 @@
     {
         "name": "Smugglers Way, Wandsworth",
         "id": 665,
-        "bike_stands": 28,
+        "capacity": 28,
         "coordinates": [
             -0.191722,
             51.461083
@@ -65,7 +65,7 @@
     {
         "name": "Esmond Street, Putney",
         "id": 678,
-        "bike_stands": 30,
+        "capacity": 30,
         "coordinates": [
             -0.211468,
             51.462312
@@ -74,7 +74,7 @@
     {
         "name": "Neville Gill Close, Wandsworth",
         "id": 684,
-        "bike_stands": 32,
+        "capacity": 32,
         "coordinates": [
             -0.195197,
             51.454752
@@ -83,7 +83,7 @@
     {
         "name": "Osiers Road, Wandsworth",
         "id": 685,
-        "bike_stands": 30,
+        "capacity": 30,
         "coordinates": [
             -0.198735,
             51.46067
@@ -92,7 +92,7 @@
     {
         "name": "Northfields, Wandsworth",
         "id": 688,
-        "bike_stands": 28,
+        "capacity": 28,
         "coordinates": [
             -0.200667,
             51.460951
@@ -101,7 +101,7 @@
     {
         "name": "Felsham Road, Putney",
         "id": 693,
-        "bike_stands": 18,
+        "capacity": 18,
         "coordinates": [
             -0.21561799999999998,
             51.464786
@@ -110,7 +110,7 @@
     {
         "name": "Putney Rail Station, Putney",
         "id": 694,
-        "bike_stands": 20,
+        "capacity": 20,
         "coordinates": [
             -0.21652600000000002,
             51.460716999999995
@@ -119,7 +119,7 @@
     {
         "name": "Mexfield Road, East Putney",
         "id": 704,
-        "bike_stands": 18,
+        "capacity": 18,
         "coordinates": [
             -0.202802,
             51.45682
@@ -128,7 +128,7 @@
     {
         "name": "Disraeli Road, Putney",
         "id": 708,
-        "bike_stands": 33,
+        "capacity": 33,
         "coordinates": [
             -0.21614499999999998,
             51.46161
@@ -137,7 +137,7 @@
     {
         "name": "Montserrat Road , Putney",
         "id": 709,
-        "bike_stands": 23,
+        "capacity": 23,
         "coordinates": [
             -0.21555,
             51.463211
@@ -146,7 +146,7 @@
     {
         "name": "Stephendale Road, Sands End",
         "id": 723,
-        "bike_stands": 48,
+        "capacity": 48,
         "coordinates": [
             -0.19034600000000002,
             51.46822
@@ -155,7 +155,7 @@
     {
         "name": "Putney Bridge Road, East Putney",
         "id": 728,
-        "bike_stands": 29,
+        "capacity": 29,
         "coordinates": [
             -0.20624,
             51.461999
@@ -164,7 +164,7 @@
     {
         "name": "Oxford Road, Putney",
         "id": 743,
-        "bike_stands": 29,
+        "capacity": 29,
         "coordinates": [
             -0.21260700000000002,
             51.460792
@@ -173,7 +173,7 @@
     {
         "name": "Manfred Road, East Putney",
         "id": 752,
-        "bike_stands": 29,
+        "capacity": 29,
         "coordinates": [
             -0.206002,
             51.458164000000004
@@ -182,7 +182,7 @@
     {
         "name": "Ranelagh Gardens, Fulham",
         "id": 765,
-        "bike_stands": 39,
+        "capacity": 39,
         "coordinates": [
             -0.206827,
             51.467601
@@ -191,7 +191,7 @@
     {
         "name": "Ram Street, Wandsworth",
         "id": 766,
-        "bike_stands": 25,
+        "capacity": 25,
         "coordinates": [
             -0.192165,
             51.457529
@@ -200,7 +200,7 @@
     {
         "name": "Santos Road, Wandsworth",
         "id": 767,
-        "bike_stands": 30,
+        "capacity": 30,
         "coordinates": [
             -0.20080599999999998,
             51.457059

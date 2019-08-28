@@ -1,7 +1,7 @@
 class Station:
 
-    def __init__(self, name, id, coordinates, total_stand_count):
+    def __init__(self, name, id, coordinates, capacity):
         self.name = name
         self.id = id
-        self.coordinates = coordinates
-        self.total_stand_count = total_stand_count
+        self.coordinates = coordinates #[lng, lat]
+        self.capacity = capacity
