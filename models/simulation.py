@@ -13,17 +13,8 @@ class Simulation:
     def set_setting(self, setting):
         self.setting = setting
 
-    def set_total_cost(self, total_cost):
-        self.total_cost = total_cost
-
-    def set_drift(self, drift):
-        self.drift = drift
-
-    def set_moved_bike_total_count(self, moved_bike_total_count):
-        self.moved_bike_total_count = moved_bike_total_count
-
-    def set_rebalanced_bike_total_count(self, rebalanced_bike_total_count):
-        self.rebalanced_bike_total_count = rebalanced_bike_total_count
+    def set_result(self, result):
+        self.result = result
 
     def add_cycle(self, cycle):
         self.cycles.append(cycle)

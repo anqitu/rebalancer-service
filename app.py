@@ -16,7 +16,7 @@ def get_stations_response():
         station_response['id'] = station.id
         station_response['coordinates'] = station.coordinates
         station_response['capacity'] = station.capacity
-        station_response['count'] = station_snapshot.available_bike_count_before_rebalance
+        station_response['count'] = station_snapshot.current_bike_count
         stations.append(station_response)
 
     return stations
@@ -57,6 +57,8 @@ def get_cycle_snapshot():
     cycle_snapshot['cumulative_rebalanced_bike_count'] = current_cycle.cumulative_rebalanced_bike_count
     cycle_snapshot['cumulative_rebalance_cost'] = current_cycle.cumulative_rebalance_cost
     cycle_snapshot['cumulative_drift'] = current_cycle.cumulative_drift
+    cycle_snapshot['time_avg_rebalance_cost'] = current_cycle.time_avg_rebalance_cost
+    cycle_snapshot['time_avg_cond_drift'] = current_cycle.time_avg_cond_drift
 
     return cycle_snapshot
 
@@ -88,6 +90,9 @@ def get_simulate_ride_response():
 
     return cycle_response
 
+def get_finish_simulation_response():
+    return simulator.simulation.result.__dict__
+
 @app.route("/initialize")
 def initialize():
     return jsonify(get_initialize_response())
@@ -118,6 +123,11 @@ def rebalance():
 def simulate_rides():
     simulator.simulate_rides()
     return jsonify(get_simulate_ride_response())
+
+@app.route("/finish-simulation")
+def finish_simulation():
+    simulator.finish_simulation()
+    return jsonify(get_finish_simulation_response())
 
 if __name__ == "__main__":
     app.run(debug=True)

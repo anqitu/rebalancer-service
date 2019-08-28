@@ -26,7 +26,15 @@ class StationSnapshot:
 
     def set_target_bike_count(self, target_bike_count):
         self.target_bike_count = target_bike_count
-        self.target_bike_count_for_next_cycle = target_bike_count
+
+    def set_next_cycle_expected_incoming_bike_count(self, next_cycle_expected_incoming_bike_count):
+        self.next_cycle_expected_incoming_bike_count = next_cycle_expected_incoming_bike_count
+
+    def set_next_cycle_expected_outgoing_bike_count(self, next_cycle_expected_outgoing_bike_count):
+        self.next_cycle_expected_outgoing_bike_count = next_cycle_expected_outgoing_bike_count
+
+    def set_next_cycle_target_bike_count(self, next_cycle_target_bike_count):
+        self.next_cycle_target_bike_count = next_cycle_target_bike_count
 
     def set_target_rebalance_bike_count(self, target_rebalance_bike_count):
         self.target_rebalance_bike_count = target_rebalance_bike_count
