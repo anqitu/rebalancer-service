@@ -9,7 +9,7 @@ simulator = Simulator()
 def get_stations_response():
     stations = []
 
-    for station_snapshot in simulator.station_snapshots:
+    for station_snapshot in simulator.station_snapshots.values():
         station_response = {}
         station = station_snapshot.station
         station_response['name'] = station.name

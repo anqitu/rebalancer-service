@@ -22,8 +22,8 @@ class Simulator:
         self.data_service = DataService()
         self.simulation = Simulation(default_setting)
         self.stations = self.__get_stations_from_json()
-        self.station_snapshots = [StationSnapshot(station = station) for station in self.stations]
-        for station_snapshot in self.station_snapshots:
+        self.station_snapshots = {station.id: StationSnapshot(station = station) for station in self.stations}
+        for station_snapshot in self.station_snapshots.values():
             station_snapshot.set_initial_available_bike_count(20)
 
     def configure_setting(self, setting):
@@ -32,22 +32,22 @@ class Simulator:
     def start_simulation(self):
         self.cycle = Cycle(1, first_cycle_start_time)
         self.simulation.add_cycle(self.cycle)
-        self.cycle.set_station_snapshots(self.station_snapshots)
+        self.cycle.set_station_snapshots(self.station_snapshots.values())
 
         self.__set_stations_data()
 
     def next_cycle(self):
         self.cycle = Cycle(self.cycle.count + 1, self.__increase_cycle_time(self.cycle.time), self.cycle)
         self.simulation.add_cycle(self.cycle)
-        self.station_snapshots = [StationSnapshot(previous_station_snapshot = station_snapshot) for station_snapshot in self.station_snapshots]
-        self.cycle.set_station_snapshots(self.station_snapshots)
+        self.station_snapshots = {station_snapshot.station.id: StationSnapshot(previous_station_snapshot = station_snapshot) for station_snapshot in self.station_snapshots.values()}
+        self.cycle.set_station_snapshots(self.station_snapshots.values())
 
         self.__set_stations_data()
 
     def rebalance(self):
         self.__set_stations_target_bike_count()
+        self.__set_stations_target_rebalance_bike_count()
         self.cycle.set_rebalance_schedules(self.__calculate_rebalance_schedules())
-        self.__set_stations_rebalanced_bike_count()
         self.cycle.set_drift(self.__calculate_drift())
 
     def simulate_rides(self):
@@ -60,7 +60,7 @@ class Simulator:
         return [Station(station['name'], station['id'], station['coordinates'], station['capacity']) for station in stations]
 
     def __set_stations_data(self):
-        for station_snapshot in self.station_snapshots:
+        for station_snapshot in self.station_snapshots.values():
             station_data = self.data_service.get_station_data(station_snapshot.station.id, self.cycle.time)
             station_snapshot.set_expected_incoming_bike_count(station_data['in'] + random.randrange(-2, 3))
             station_snapshot.set_expected_outgoing_bike_count(station_data['out'] + random.randrange(-2, 3))
@@ -68,7 +68,8 @@ class Simulator:
             station_snapshot.set_actual_outgoing_bike_count(station_data['out'])
 
     def __set_stations_target_bike_count(self):
-        for station_snapshot in self.station_snapshots:
+        for station_snapshot in self.station_snapshots.values():
+            station_snapshot.set_target_bike_count(self.__calculate_station_target_bike_count(station_snapshot))
             station_snapshot.set_target_bike_count(self.__calculate_station_target_bike_count(station_snapshot))
 
     def __calculate_station_target_bike_count(self, station_snapshot):
@@ -76,15 +77,22 @@ class Simulator:
                + station_snapshot.expected_outgoing_bike_count \
                - station_snapshot.expected_incoming_bike_count
 
-    def __set_stations_rebalanced_bike_count(self):
-        for station_snapshot in self.station_snapshots:
-            station_snapshot.set_rebalanced_bike_count(self.__calculate_station_rebalanced_bike_count(station_snapshot))
+    def __set_stations_target_rebalance_bike_count(self):
+        for station_snapshot in self.station_snapshots.values():
+            station_snapshot.set_target_rebalance_bike_count(self.__calculate_target_rebalance_bike_count(station_snapshot))
 
-    def __calculate_station_rebalanced_bike_count(self, station_snapshot):
-        return station_snapshot.target_rebalance_bike_count
+    def __calculate_target_rebalance_bike_count(self, station_snapshot):
+        setting = self.simulation.setting
+        cost_per_bike = setting.peak_cost
+        cost_coef = setting.cost_coef
+        return station_snapshot.target_bike_count_for_next_cycle \
+               + station_snapshot.expected_outgoing_bike_count \
+               - station_snapshot.available_bike_count_before_rebalance \
+               - station_snapshot.expected_incoming_bike_count \
+               - cost_coef * cost_per_bike
 
     def __set_stations_available_available_bike_count_after_rides(self):
-        for station_snapshot in self.station_snapshots:
+        for station_snapshot in self.station_snapshots.values():
             station_snapshot.set_available_bike_count_after_rides(self.__calculate_stations_available_available_bike_count_after_rides(station_snapshot))
 
     def __calculate_stations_available_available_bike_count_after_rides(self, station_snapshot):
@@ -95,11 +103,11 @@ class Simulator:
     def __calculate_rebalance_schedules(self):
         destination_stations = {station_snapshot.station.id: {'station': station_snapshot.station,
                                  'rebalance_bike_count': station_snapshot.target_rebalance_bike_count} \
-                                 for station_snapshot in self.station_snapshots \
+                                 for station_snapshot in self.station_snapshots.values() \
                                  if station_snapshot.target_rebalance_bike_count > 0}
         source_stations = {station_snapshot.station.id: {'station': station_snapshot.station,
                                  'rebalance_bike_count': station_snapshot.target_rebalance_bike_count} \
-                                 for station_snapshot in self.station_snapshots \
+                                 for station_snapshot in self.station_snapshots.values() \
                                  if station_snapshot.target_rebalance_bike_count < 0}
 
         print('-' * 40)
@@ -153,6 +161,9 @@ class Simulator:
                                                      rebalanced_bike_count,
                                                      rebalance_cost)
                 rebalance_schedules.append(rebalance_schedule)
+
+                self.station_snapshots[destination_id].change_rebalanced_bike_count(rebalanced_bike_count)
+                self.station_snapshots[source_id].change_rebalanced_bike_count(rebalanced_bike_count * -1)
 
                 print(rebalance_schedule.__dict__)
 

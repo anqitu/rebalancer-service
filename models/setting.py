@@ -5,3 +5,4 @@ class Setting:
         self.peak_cost = peak_cost
         self.off_peak_cost = off_peak_cost
         self.budget_per_cycle = budget_per_cycle
+        self.cost_coef = cost_coef
