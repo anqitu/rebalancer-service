@@ -51,6 +51,8 @@ class StationSnapshot:
     def set_actual_outgoing_bike_count(self, actual_outgoing_bike_count):
         self.actual_outgoing_bike_count = actual_outgoing_bike_count
 
-    def set_available_bike_count_after_rides(self, available_bike_count_after_rides):
-        self.available_bike_count_after_rides = available_bike_count_after_rides
-        self.current_bike_count = available_bike_count_after_rides
+    def calculate_available_bike_count_after_rides(self):
+        self.available_bike_count_after_rides = self.available_bike_count_after_rebalance \
+                                                + self.actual_incoming_bike_count \
+                                                - self.actual_outgoing_bike_count
+        self.current_bike_count = self.available_bike_count_after_rides

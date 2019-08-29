@@ -52,7 +52,8 @@ def get_cycle_snapshot():
     cycle_snapshot['moved_bike_count'] = current_cycle.moved_bike_count
     cycle_snapshot['rebalanced_bike_count'] = current_cycle.rebalanced_bike_count
     cycle_snapshot['rebalance_cost'] = current_cycle.rebalance_cost
-    cycle_snapshot['drift'] = current_cycle.drift
+    cycle_snapshot['lyapunov'] = current_cycle.lyapunov
+    cycle_snapshot['lyapunov_drift'] = current_cycle.lyapunov_drift
     cycle_snapshot['cumulative_moved_bike_count'] = current_cycle.cumulative_moved_bike_count
     cycle_snapshot['cumulative_rebalanced_bike_count'] = current_cycle.cumulative_rebalanced_bike_count
     cycle_snapshot['cumulative_rebalance_cost'] = current_cycle.cumulative_rebalance_cost

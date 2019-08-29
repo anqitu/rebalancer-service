@@ -23,8 +23,9 @@ class Simulator:
     def __init__(self):
         self.data_service = DataService()
         self.prediction_service = PredictionService()
+
         self.simulation = Simulation(default_setting)
-        self.stations = self.__get_stations_from_json()
+        self.stations = self.data_service.get_station_data()
         self.station_snapshots = {station.id: StationSnapshot(station = station) for station in self.stations}
         for station_snapshot in self.station_snapshots.values():
             station_snapshot.set_initial_available_bike_count(20)
@@ -48,11 +49,7 @@ class Simulator:
         self.__set_stations_data()
 
     def rebalance(self):
-        self.__set_stations_target_bike_count()
-        self.__set_stations_next_cycle_target_bike_count()
-        self.__set_stations_target_rebalance_bike_count()
         self.cycle.set_rebalance_schedules(self.__calculate_rebalance_schedules())
-        self.cycle.set_drift(self.__calculate_drift())
 
     def simulate_rides(self):
         self.__set_stations_available_available_bike_count_after_rides()
@@ -69,39 +66,33 @@ class Simulator:
                                           cycle_count = cycle.count,
                                           simulation_hour = cycle.count * setting.interval_hour))
 
-    def __get_stations_from_json(self):
-        with open('data/london_stations.json') as json_file:
-            stations = json.load(json_file)
-        return [Station(station['name'], station['id'], station['coordinates'], station['capacity']) for station in stations]
 
     def __set_stations_data(self):
         for station_snapshot in self.station_snapshots.values():
 
-            station_data = self.data_service.get_station_data(station_snapshot.station.id, self.cycle.time)
+            station_data = self.data_service.get_journey_data(station_snapshot.station.id, self.cycle.time)
             station_snapshot.set_actual_incoming_bike_count(station_data['in'])
             station_snapshot.set_actual_outgoing_bike_count(station_data['out'])
 
-            prediction_data = self.prediction_service.get_station_data(station_snapshot.station.id, self.cycle.time)
+            prediction_data = self.prediction_service.get_journey_data(station_snapshot.station.id, self.cycle.time)
             station_snapshot.set_expected_incoming_bike_count(station_data['in'] + random.randrange(-2, 3))
             station_snapshot.set_expected_outgoing_bike_count(station_data['out'] + random.randrange(-2, 3))
 
-            next_cycle_station_data = self.prediction_service.get_station_data(station_snapshot.station.id, self.__next_cycle_time(self.cycle.time))
+            next_cycle_station_data = self.prediction_service.get_journey_data(station_snapshot.station.id, self.__next_cycle_time(self.cycle.time))
             station_snapshot.set_next_cycle_expected_incoming_bike_count(station_data['in'] + random.randrange(-2, 3))
             station_snapshot.set_next_cycle_expected_outgoing_bike_count(station_data['out'] + random.randrange(-2, 3))
 
-
-    def __set_stations_target_bike_count(self):
-        for station_snapshot in self.station_snapshots.values():
             station_snapshot.set_target_bike_count(self.__calculate_station_target_bike_count(station_snapshot))
+            station_snapshot.set_next_cycle_target_bike_count(self.__calculate_station_next_cycle_target_bike_count(station_snapshot))
+            station_snapshot.set_target_rebalance_bike_count(self.__calculate_target_rebalance_bike_count(station_snapshot))
+
+        self.cycle.set_lyapunov(self.__calculate_lyapunov())
+
 
     def __calculate_station_target_bike_count(self, station_snapshot):
         return station_snapshot.available_bike_count_before_rebalance \
                + station_snapshot.expected_outgoing_bike_count \
                - station_snapshot.expected_incoming_bike_count
-
-    def __set_stations_next_cycle_target_bike_count(self):
-        for station_snapshot in self.station_snapshots.values():
-            station_snapshot.set_next_cycle_target_bike_count(self.__calculate_station_next_cycle_target_bike_count(station_snapshot))
 
     def __calculate_station_next_cycle_target_bike_count(self, station_snapshot):
         return station_snapshot.available_bike_count_before_rebalance \
@@ -109,10 +100,6 @@ class Simulator:
                - station_snapshot.expected_incoming_bike_count \
                + station_snapshot.next_cycle_expected_outgoing_bike_count \
                - station_snapshot.next_cycle_expected_incoming_bike_count \
-
-    def __set_stations_target_rebalance_bike_count(self):
-        for station_snapshot in self.station_snapshots.values():
-            station_snapshot.set_target_rebalance_bike_count(self.__calculate_target_rebalance_bike_count(station_snapshot))
 
     def __calculate_target_rebalance_bike_count(self, station_snapshot):
         setting = self.simulation.setting
@@ -126,12 +113,7 @@ class Simulator:
 
     def __set_stations_available_available_bike_count_after_rides(self):
         for station_snapshot in self.station_snapshots.values():
-            station_snapshot.set_available_bike_count_after_rides(self.__calculate_stations_available_available_bike_count_after_rides(station_snapshot))
-
-    def __calculate_stations_available_available_bike_count_after_rides(self, station_snapshot):
-        return station_snapshot.available_bike_count_after_rebalance \
-               + station_snapshot.actual_incoming_bike_count \
-               - station_snapshot.actual_outgoing_bike_count
+            station_snapshot.calculate_available_bike_count_after_rides()
 
     def __calculate_rebalance_schedules(self):
         destination_stations = {station_snapshot.station.id: {'station': station_snapshot.station,
@@ -202,8 +184,8 @@ class Simulator:
 
         return rebalance_schedules
 
-    def __calculate_drift(self):
-        return 300
+    def __calculate_lyapunov(self):
+        return 0.5 * sum([(station_snapshot.available_bike_count_before_rebalance - station_snapshot.target_bike_count) ** 2 for station_snapshot in self.station_snapshots.values()])
 
     def __next_cycle_time(self, previous_time):
         return previous_time + pd.Timedelta(hours=self.simulation.setting.interval_hour)
