@@ -24,7 +24,16 @@ def get_stations():
     return stations
 
 def get_settings():
-    return simulator.setting.__dict__
+    settings = simulator.setting.__dict__
+    settings_response = {}
+
+    for setting, name in {'interval_hour': 'intervalHour',
+                            'peak_cost': 'peakCost',
+                            'off_peak_cost': 'offPeakCost',
+                            'budget_per_cycle': 'budgetPerCycle',
+                            'cost_coef': 'costCoef'}.items():
+        settings_response[name] = settings[setting]
+    return settings_response
 
 def get_rebalance_schedules():
     rebalance_schedules = []
@@ -32,8 +41,8 @@ def get_rebalance_schedules():
     for schedule in simulator.simulation.cycles[-1].rebalance_schedules:
         rebalance_schedule = {}
         rebalance_schedule['id'] = schedule.id
-        rebalance_schedule['source_id'] = schedule.source.id
-        rebalance_schedule['destination_id'] = schedule.destination.id
+        rebalance_schedule['sourceId'] = schedule.source.id
+        rebalance_schedule['destinationId'] = schedule.destination.id
         rebalance_schedule['count'] = schedule.rebalanced_bike_count
         rebalance_schedules.append(rebalance_schedule)
 
