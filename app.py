@@ -1,10 +1,12 @@
 from flask import Flask, jsonify, request
 from datetime import datetime
+from flask_cors import CORS
 
 from services.simulator import Simulator
 from constants import *
 
 app = Flask(__name__)
+CORS(app)
 
 simulator = Simulator()
 
