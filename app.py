@@ -21,14 +21,6 @@ def get_stations_response():
 
     return stations
 
-def get_initialize_response():
-    initialize_response = {}
-
-    initialize_response['stations'] = get_stations_response()
-    initialize_response['setting'] = simulator.simulation.setting.__dict__
-
-    return initialize_response
-
 def get_rebalance_schedules_response():
     rebalance_schedules = []
 
@@ -42,7 +34,7 @@ def get_rebalance_schedules_response():
 
     return rebalance_schedules
 
-def get_cycle_snapshot():
+def get_statistics():
     cycle_snapshot = {}
 
     current_cycle = simulator.simulation.cycles[-1]
@@ -75,60 +67,99 @@ def get_station_snapshots():
 
     return station_snapshots
 
+def get_init_response():
+    response = {}
+    response['current_status'] = simulator.simulation.status
+    response['next_status'] = simulator.simulation.next_status
+
+    return response
+
 def get_rebalance_response():
-    rebalance_response = {}
+    response = {}
+    response['current_status'] = simulator.simulation.status
+    response['next_status'] = simulator.simulation.next_status
+    response['rebalance_schedules'] = get_rebalance_schedules_response()
+    response['statistics'] = get_statistics()
+    response['stations'] = get_station_snapshots()
 
-    rebalance_response['rebalance_schedules'] = get_rebalance_schedules_response()
-    rebalance_response['cycle_snapshot'] = get_cycle_snapshot()
-    rebalance_response['station_snapshots'] = get_station_snapshots()
+    return response
 
-    return rebalance_response
+def get_simulate_rides_response():
+    response = {}
+    response['current_status'] = simulator.simulation.status
+    response['next_status'] = simulator.simulation.next_status
+    response['statistics'] = get_statistics()
+    response['stations'] = get_station_snapshots()
 
-def get_simulate_ride_response():
-    cycle_response = {}
-    cycle_response['cycle_snapshot'] = get_cycle_snapshot()
-    cycle_response['station_snapshots'] = get_station_snapshots()
+    return response
 
-    return cycle_response
+def get_next_cycle_response():
+    response = {}
+    response['current_status'] = simulator.simulation.status
+    response['next_status'] = simulator.simulation.next_status
+    response['statistics'] = get_statistics()
+
+    return response
 
 def get_finish_simulation_response():
     return simulator.simulation.result.__dict__
 
+def get_status_response():
+    response = {}
+    response['current_status'] = simulator.simulation.status
+    response['next_status'] = simulator.simulation.next_status
+    response['statistics'] = get_statistics()
+    response['stations'] = get_station_snapshots()
+
+    return response
+
 @app.route("/initialize")
 def initialize():
-    return jsonify(get_initialize_response())
+    return jsonify(get_init_response())
 
-@app.route("/configure-setting", methods = ['POST'])
+@app.route("/setting", methods = ['GET'])
+def get_setting():
+    return jsonify(simulator.simulation.setting.__dict__)
+
+@app.route("/setting", methods = ['POST'])
 def configure_setting():
     setting = request.form
     for key, value in setting.items():
         setattr(simulator.simulation.setting, key, value )
     return jsonify(simulator.simulation.setting.__dict__)
 
-@app.route("/start-simulation")
+@app.route("/stations", methods = ['GET'])
+def get_stations():
+    return jsonify(get_stations_response)
+
+@app.route("/step/start")
 def start_simulation():
     simulator.start_simulation()
-    return jsonify(get_cycle_snapshot())
+    return jsonify(get_next_cycle_response())
 
-@app.route("/next-cycle")
+@app.route("/step/next-cycle")
 def next_cycle():
     simulator.next_cycle()
-    return jsonify(get_cycle_snapshot())
+    return jsonify(get_next_cycle_response())
 
-@app.route("/rebalance")
+@app.route("/step/rebalance")
 def rebalance():
     simulator.rebalance()
     return jsonify(get_rebalance_response())
 
-@app.route("/simulate-rides")
+@app.route("/step/rides")
 def simulate_rides():
     simulator.simulate_rides()
-    return jsonify(get_simulate_ride_response())
+    return jsonify(get_simulate_rides_response())
 
-@app.route("/finish-simulation")
+@app.route("/step/finish")
 def finish_simulation():
     simulator.finish_simulation()
     return jsonify(get_finish_simulation_response())
+
+@app.route("/status")
+def get_status():
+    return jsonify(get_status_response())
 
 if __name__ == "__main__":
     app.run(debug=True)

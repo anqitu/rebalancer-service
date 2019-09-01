@@ -37,6 +37,7 @@ class Simulator:
         self.cycle = Cycle(1, first_cycle_start_time)
         self.simulation.add_cycle(self.cycle)
         self.cycle.set_station_snapshots(self.station_snapshots.values())
+        self.simulation.update_status('START')
 
         self.__set_stations_data()
 
@@ -45,15 +46,18 @@ class Simulator:
         self.simulation.add_cycle(self.cycle)
         self.station_snapshots = {station_snapshot.station.id: StationSnapshot(previous_station_snapshot = station_snapshot) for station_snapshot in self.station_snapshots.values()}
         self.cycle.set_station_snapshots(self.station_snapshots.values())
+        self.simulation.update_status('NEXT CYCLE')
 
         self.__set_stations_data()
 
     def rebalance(self):
         self.cycle.set_rebalance_schedules(self.__calculate_rebalance_schedules())
+        self.simulation.update_status('REBALANCE')
 
     def simulate_rides(self):
         self.__set_stations_available_available_bike_count_after_rides()
         self.cycle.set_moved_bike_count()
+        self.simulation.update_status('RIDES')
 
     def finish_simulation(self):
         cycle = self.cycle
@@ -65,6 +69,7 @@ class Simulator:
                                           rebalanced_bike_total_count = cycle.cumulative_rebalanced_bike_count,
                                           cycle_count = cycle.count,
                                           simulation_hour = cycle.count * setting.interval_hour))
+        self.simulation.update_status('FINISH')
 
 
     def __set_stations_data(self):
