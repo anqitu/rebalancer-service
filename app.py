@@ -109,7 +109,7 @@ def get_step_response():
     elif response['currentStatus'] == STATUS_REBALANCE:
         response['statistics'] = get_statistics()
         response['stations'] = get_station_snapshots()
-        response['rebalanceSchedules'] = get_rebalance_schedules()
+        response['trips'] = get_rebalance_schedules()
 
     elif response['currentStatus'] == STATUS_RIDES:
         response['statistics'] = get_statistics()
