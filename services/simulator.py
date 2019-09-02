@@ -79,6 +79,7 @@ class Simulator:
 
     def finish_simulation(self):
         self.__init__()
+        self.update_status(STATUS_FINISH)
 
     def __set_stations_data(self):
         for station_snapshot in self.station_snapshots.values():
@@ -226,4 +227,4 @@ class Simulator:
         elif self.current_status == STATUS_NEXT_CYCLE:
             self.next_status = STATUS_REBALANCE
         elif self.current_status == STATUS_FINISH:
-            self.next_status = None
+            self.next_status = STATUS_START

@@ -117,25 +117,29 @@ def get_step_response():
 
     return response
 
-def get_simulate_rides_response():
-    response = {}
-    response['currentStatus'] = simulator.simulation.current_status
-    response['nextStatus'] = simulator.simulation.next_status
-    response['statistics'] = get_statistics()
-    response['stations'] = get_station_snapshots()
+def get_result():
+    response = []
+
+    result = simulator.get_result()
+    for attribute, name in {'cycle_count': 'Cycle Count',
+                            'simulation_hour': 'Simulation Hours',
+                            'moved_bike_total_count': 'Moved Bike Total Count',
+                            'rebalanced_bike_total_count': 'Rebalanced Bike Total Count',
+                            'time_avg_cost': 'Time Average Cost',
+                            'time_avg_cond_drift': 'Time Average Conditional Drift',
+                            'obj_function': 'Objective Function'}.items():
+        response.append({'name': name, 'value': getattr(result, attribute)})
 
     return response
 
-def get_next_cycle_response():
+def get_finish_simulation_response(result):
     response = {}
-    response['currentStatus'] = simulator.simulation.current_status
-    response['nextStatus'] = simulator.simulation.next_status
-    response['statistics'] = get_statistics()
+    response['time'] = datetime.timestamp(simulator.time)
+    response['currentStatus'] = simulator.current_status
+    response['nextStatus'] = simulator.next_status
+    response['statistics'] = result
 
     return response
-
-def get_finish_simulation_response():
-    return simulator.get_result().__dict__
 
 
 @app.route("/status", methods = ['GET'])
@@ -165,11 +169,11 @@ def simulate_rides():
     simulator.simulate_rides()
     return jsonify(get_step_response())
 
-@app.route("/finish", methods = ['POST'])
+@app.route("/step/{}".format(STATUS_FINISH), methods = ['POST'])
 def finish_simulation():
-    response = get_finish_simulation_response()
+    result = get_result()
     simulator.finish_simulation()
-    return jsonify(response)
+    return jsonify(get_finish_simulation_response(result))
 
 if __name__ == "__main__":
     app.run(debug=True)
