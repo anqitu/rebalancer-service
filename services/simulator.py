@@ -30,7 +30,7 @@ class Simulator:
         self.stations = self.data_service.get_station_data()
         self.station_snapshots = {station.id: StationSnapshot(station = station) for station in self.stations}
         for station_snapshot in self.station_snapshots.values():
-            station_snapshot.set_initial_available_bike_count(20)
+            station_snapshot.set_initial_available_bike_count(0.7)
 
     def configure_setting(self, setting):
         self.setting = setting
@@ -118,17 +118,18 @@ class Simulator:
         setting = self.setting
         cost_per_bike = setting.peak_cost
         cost_coef = setting.cost_coef
-        return station_snapshot.next_cycle_target_bike_count \
+        return max(station_snapshot.next_cycle_target_bike_count \
                + station_snapshot.expected_outgoing_bike_count \
                - station_snapshot.available_bike_count_before_rebalance \
                - station_snapshot.expected_incoming_bike_count \
-               - cost_coef * cost_per_bike
+               - cost_coef * cost_per_bike, station_snapshot.available_bike_count_before_rebalance * -1)
 
     def __set_stations_available_available_bike_count_after_rides(self):
         for station_snapshot in self.station_snapshots.values():
             station_snapshot.calculate_available_bike_count_after_rides()
 
     def __calculate_rebalance_schedules(self):
+        print_info('Start calculating rebalance schedules for Cycle @{}'.format(self.time))
         destination_stations = {station_snapshot.station.id: {'station': station_snapshot.station,
                                  'rebalance_bike_count': station_snapshot.target_rebalance_bike_count} \
                                  for station_snapshot in self.station_snapshots.values() \
@@ -138,12 +139,12 @@ class Simulator:
                                  for station_snapshot in self.station_snapshots.values() \
                                  if station_snapshot.target_rebalance_bike_count < 0}
 
-        print('-' * 40)
-        for key, value in destination_stations.items():
-            print(key, ': ', value['rebalance_bike_count'])
-        print('-' * 40)
-        for key, value in source_stations.items():
-            print(key, ': ', value['rebalance_bike_count'])
+        # print('-' * 40)
+        # for key, value in destination_stations.items():
+        #     print(key, ': ', value['rebalance_bike_count'])
+        # print('-' * 40)
+        # for key, value in source_stations.items():
+        #     print(key, ': ', value['rebalance_bike_count'])
 
         destination_ids = sorted(list(destination_stations.keys()))
         source_ids = sorted(list(source_stations.keys()))
@@ -160,14 +161,12 @@ class Simulator:
             sorted_source_distances = dict(sorted(source_distances.items(), key=lambda kv: kv[1]))
             sorted_source_ids = list(sorted_source_distances.keys())
 
-            print('-' * 40)
-            print('destination_id: ', destination_id)
-            for key, value in sorted_source_distances.items():
-                print(key, ': ', value)
+            # print('-' * 40)
+            # print('destination_id: ', destination_id)
+            # for key, value in sorted_source_distances.items():
+            #     print(key, ': ', value)
 
-            while destination_stations[destination_id]['rebalance_bike_count'] > 0 and len(source_ids) != 0:
-                source_id = sorted_source_ids[0]
-
+            for source_id in sorted_source_ids:
                 destination_rebalance_bike_count = destination_stations[destination_id]['rebalance_bike_count']
                 source_rebalance_bike_count = source_stations[source_id]['rebalance_bike_count']
                 if abs(source_rebalance_bike_count) <= destination_rebalance_bike_count:
@@ -180,7 +179,6 @@ class Simulator:
 
                 if source_stations[source_id]['rebalance_bike_count'] == 0:
                     source_ids.remove(source_id)
-                    del sorted_source_ids[0]
 
                 rebalance_cost = rebalanced_bike_count * cost_per_bike
                 budget -= rebalance_cost
@@ -194,6 +192,15 @@ class Simulator:
                 self.station_snapshots[source_id].change_rebalanced_bike_count(rebalanced_bike_count * -1)
 
                 print(rebalance_schedule.__dict__)
+
+                print('rebalance_bike_count: ', destination_stations[destination_id]['rebalance_bike_count'])
+                print('source_ids: ', source_ids)
+
+                if destination_stations[destination_id]['rebalance_bike_count'] == 0 or math.floor(budget/cost_per_bike) == 0:
+                    break
+
+            if math.floor(budget/cost_per_bike) == 0:
+                break
 
         return rebalance_schedules
 

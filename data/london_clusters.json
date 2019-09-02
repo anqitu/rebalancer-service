@@ -1,0 +1,182 @@
+[
+    {
+        "name": "Christopher Street, Liverpool Street",
+        "id": 0,
+        "capacity": 1379,
+        "coordinates": [
+            -0.07727695833333331,
+            51.52752670833333
+        ]
+    },
+    {
+        "name": "Charlbert Street, St. John's Wood",
+        "id": 1,
+        "capacity": 993,
+        "coordinates": [
+            -0.17285541860465115,
+            51.52187676744186
+        ]
+    },
+    {
+        "name": "Abbey Orchard Street, Westminster",
+        "id": 2,
+        "capacity": 987,
+        "coordinates": [
+            -0.13872964285714284,
+            51.490191833333334
+        ]
+    },
+    {
+        "name": "Kensington Olympia Station, Olympia",
+        "id": 3,
+        "capacity": 915,
+        "coordinates": [
+            -0.2178485,
+            51.49088215625
+        ]
+    },
+    {
+        "name": "St. Chad's Street, King's Cross",
+        "id": 4,
+        "capacity": 1544,
+        "coordinates": [
+            -0.12286195,
+            51.51787598333333
+        ]
+    },
+    {
+        "name": "Jubilee Crescent, Cubitt Town",
+        "id": 5,
+        "capacity": 991,
+        "coordinates": [
+            -0.01564448387096773,
+            51.50249358064516
+        ]
+    },
+    {
+        "name": "New Globe Walk, Bankside",
+        "id": 6,
+        "capacity": 1248,
+        "coordinates": [
+            -0.08896636363636362,
+            51.50580277272727
+        ]
+    },
+    {
+        "name": "Sugden Road, Clapham",
+        "id": 7,
+        "capacity": 1131,
+        "coordinates": [
+            -0.16907853658536587,
+            51.468932975609754
+        ]
+    },
+    {
+        "name": "Hereford Road, Bayswater",
+        "id": 8,
+        "capacity": 1014,
+        "coordinates": [
+            -0.20715907500000003,
+            51.510245475
+        ]
+    },
+    {
+        "name": "River Street , Clerkenwell",
+        "id": 9,
+        "capacity": 1207,
+        "coordinates": [
+            -0.10263506382978722,
+            51.52522804255319
+        ]
+    },
+    {
+        "name": "Cotton Garden Estate, Kennington",
+        "id": 10,
+        "capacity": 1380,
+        "coordinates": [
+            -0.10959310204081632,
+            51.49871830612245
+        ]
+    },
+    {
+        "name": "Phillimore Gardens, Kensington",
+        "id": 11,
+        "capacity": 998,
+        "coordinates": [
+            -0.18522515555555555,
+            51.495157911111114
+        ]
+    },
+    {
+        "name": "Broadcasting House, Marylebone",
+        "id": 12,
+        "capacity": 994,
+        "coordinates": [
+            -0.14751332608695653,
+            51.51442232608696
+        ]
+    },
+    {
+        "name": "Bromley High Street, Bow",
+        "id": 13,
+        "capacity": 476,
+        "coordinates": [
+            -0.01664435714285714,
+            51.540308857142854
+        ]
+    },
+    {
+        "name": "Central House, Aldgate",
+        "id": 14,
+        "capacity": 1088,
+        "coordinates": [
+            -0.05993776315789473,
+            51.516496763157896
+        ]
+    },
+    {
+        "name": "Taviton Street, Bloomsbury",
+        "id": 15,
+        "capacity": 890,
+        "coordinates": [
+            -0.13765825806451612,
+            51.53282858064516
+        ]
+    },
+    {
+        "name": "Vauxhall Cross, Vauxhall",
+        "id": 16,
+        "capacity": 750,
+        "coordinates": [
+            -0.12379744,
+            51.4799144
+        ]
+    },
+    {
+        "name": "Putney Pier, Wandsworth",
+        "id": 17,
+        "capacity": 1186,
+        "coordinates": [
+            -0.20175743902439025,
+            51.46811031707317
+        ]
+    },
+    {
+        "name": "Gunmakers Lane, Old Ford",
+        "id": 18,
+        "capacity": 823,
+        "coordinates": [
+            -0.03439737931034484,
+            51.52449586206897
+        ]
+    },
+    {
+        "name": "Sedding Street, Sloane Square",
+        "id": 19,
+        "capacity": 665,
+        "coordinates": [
+            -0.1619405185185185,
+            51.495304777777775
+        ]
+    }
+]

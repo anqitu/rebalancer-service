@@ -1,6 +1,6 @@
 import pandas as pd
 
-data_path = 'data/london_journeys_count_with_6h_interval.csv'
+data_path = 'data/london_journeys_count_with_2h_interval_by_cluster.csv'
 
 class PredictionService:
 

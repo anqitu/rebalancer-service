@@ -13,10 +13,10 @@ class StationSnapshot:
 
         self.rebalanced_bike_count = 0
 
-    def set_initial_available_bike_count(self, initial_available_bike_count):
-        self.available_bike_count_before_rebalance = initial_available_bike_count
-        self.current_bike_count = initial_available_bike_count
-        self.available_bike_count_after_rebalance = initial_available_bike_count
+    def set_initial_available_bike_count(self, ratio):
+        self.available_bike_count_before_rebalance = int(self.station.capacity * ratio)
+        self.current_bike_count = self.available_bike_count_before_rebalance
+        self.available_bike_count_after_rebalance = self.available_bike_count_before_rebalance
 
     def set_expected_incoming_bike_count(self, expected_incoming_bike_count):
         self.expected_incoming_bike_count = expected_incoming_bike_count
@@ -52,7 +52,7 @@ class StationSnapshot:
         self.actual_outgoing_bike_count = actual_outgoing_bike_count
 
     def calculate_available_bike_count_after_rides(self):
-        self.available_bike_count_after_rides = self.available_bike_count_after_rebalance \
+        self.available_bike_count_after_rides = max(self.available_bike_count_after_rebalance \
                                                 + self.actual_incoming_bike_count \
-                                                - self.actual_outgoing_bike_count
+                                                - self.actual_outgoing_bike_count, 0)
         self.current_bike_count = self.available_bike_count_after_rides
