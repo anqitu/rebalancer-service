@@ -19,4 +19,4 @@ class DataService:
     def get_station_data(self):
         with open(stations_data_path) as json_file:
             stations = json.load(json_file)
-        return [Station(station['name'], station['id'], station['coordinates'], station['capacity']) for station in stations]
+        return [Station(station['name'], station['id'], station['coordinates'], int(station['capacity'] * 0.1)) for station in stations]

@@ -23,7 +23,7 @@ class Simulator:
         self.prediction_service = PredictionService()
         self.setting = DEFAULT_SETTINGS
         self.time = START_TIME
-        self.update_status(STATUS_NONE)
+        self.__update_status(STATUS_NONE)
         self.simulation = None
         self.cycle  = None
 
@@ -38,31 +38,31 @@ class Simulator:
     def start_simulation(self):
         self.simulation = Simulation(self.setting)
 
-        self.cycle = Cycle(1, START_TIME)
+        self.cycle = Cycle(0, START_TIME)
         self.simulation.add_cycle(self.cycle)
         self.cycle.set_station_snapshots(self.station_snapshots.values())
-        self.update_status(STATUS_START)
+        self.__update_status(STATUS_START)
 
         self.__set_stations_data()
 
     def next_cycle(self):
-        self.time = self.__next_cycle_time(self.cycle.time)
         self.cycle = Cycle(self.cycle.count + 1, self.time, self.cycle)
         self.simulation.add_cycle(self.cycle)
         self.station_snapshots = {station_snapshot.station.id: StationSnapshot(previous_station_snapshot = station_snapshot) for station_snapshot in self.station_snapshots.values()}
         self.cycle.set_station_snapshots(self.station_snapshots.values())
-        self.update_status(STATUS_NEXT_CYCLE)
+        self.__update_status(STATUS_NEXT_CYCLE)
 
         self.__set_stations_data()
 
     def rebalance(self):
         self.cycle.set_rebalance_schedules(self.__calculate_rebalance_schedules())
-        self.update_status(STATUS_REBALANCE)
+        self.__update_status(STATUS_REBALANCE)
 
     def simulate_rides(self):
         self.__set_stations_available_available_bike_count_after_rides()
         self.cycle.set_moved_bike_count()
-        self.update_status(STATUS_RIDES)
+        self.__update_status(STATUS_RIDES)
+        self.time = self.__next_cycle_time(self.cycle.time)
 
     def get_result(self):
         cycle = self.cycle
@@ -79,7 +79,7 @@ class Simulator:
 
     def finish_simulation(self):
         self.__init__()
-        self.update_status(STATUS_FINISH)
+        self.__update_status(STATUS_FINISH)
 
     def __set_stations_data(self):
         for station_snapshot in self.station_snapshots.values():
@@ -104,26 +104,26 @@ class Simulator:
 
 
     def __calculate_station_target_bike_count(self, station_snapshot):
-        return station_snapshot.available_bike_count_before_rebalance \
+        return min(station_snapshot.available_bike_count_before_rebalance \
                + station_snapshot.expected_outgoing_bike_count \
-               - station_snapshot.expected_incoming_bike_count
+               - station_snapshot.expected_incoming_bike_count, station_snapshot.station.capacity)
 
     def __calculate_station_next_cycle_target_bike_count(self, station_snapshot):
-        return station_snapshot.available_bike_count_before_rebalance \
+        return min(station_snapshot.available_bike_count_before_rebalance \
                + station_snapshot.expected_outgoing_bike_count \
                - station_snapshot.expected_incoming_bike_count \
                + station_snapshot.next_cycle_expected_outgoing_bike_count \
-               - station_snapshot.next_cycle_expected_incoming_bike_count \
+               - station_snapshot.next_cycle_expected_incoming_bike_count, station_snapshot.station.capacity)
 
     def __calculate_target_rebalance_bike_count(self, station_snapshot):
         setting = self.setting
         cost_per_bike = setting.peak_cost
         cost_coef = setting.cost_coef
-        return max(station_snapshot.next_cycle_target_bike_count \
+        return max(math.floor(station_snapshot.next_cycle_target_bike_count \
                + station_snapshot.expected_outgoing_bike_count \
                - station_snapshot.available_bike_count_before_rebalance \
                - station_snapshot.expected_incoming_bike_count \
-               - cost_coef * cost_per_bike, station_snapshot.available_bike_count_before_rebalance * -1)
+               - cost_coef * cost_per_bike), station_snapshot.available_bike_count_before_rebalance * -1)
 
     def __set_stations_available_available_bike_count_after_rides(self):
         for station_snapshot in self.station_snapshots.values():
@@ -152,7 +152,7 @@ class Simulator:
 
         setting = self.setting
         budget = setting.budget_per_cycle
-        cost_per_bike = setting.peak_cost
+        cost_per_bike = self.__get_current_cost_per_bike()
 
         rebalance_schedules = []
         for destination_id in destination_ids:
@@ -211,11 +211,11 @@ class Simulator:
     def __next_cycle_time(self, previous_time):
         return previous_time + timedelta(hours=self.setting.interval_hour)
 
-    def update_status(self, status):
+    def __update_status(self, status):
         self.current_status = status
-        self.update_next_status()
+        self.__update_next_status()
 
-    def update_next_status(self):
+    def __update_next_status(self):
         if self.current_status == None:
             self.next_status = STATUS_START
         elif self.current_status == STATUS_START:
@@ -228,3 +228,10 @@ class Simulator:
             self.next_status = STATUS_REBALANCE
         elif self.current_status == STATUS_FINISH:
             self.next_status = STATUS_START
+
+    def __get_current_cost_per_bike(self):
+        current_hour = self.time.hour
+        if current_hour >=8 and current_hour <20:
+            return self.setting.peak_cost
+        else:
+            return self.setting.off_peak_cost

@@ -16,7 +16,7 @@ class Cycle:
             self.cumulative_rebalanced_bike_count = previous_cycle.cumulative_rebalanced_bike_count
             self.cumulative_rebalance_cost = previous_cycle.cumulative_rebalance_cost
             self.cumulative_drift = previous_cycle.cumulative_drift
-            self.time_avg_rebalance_cost = self.cumulative_rebalance_cost / (self.count - 1)
+            self.time_avg_rebalance_cost = self.cumulative_rebalance_cost / self.count
         else:
             self.cumulative_moved_bike_count = 0
             self.cumulative_rebalanced_bike_count = 0
@@ -40,6 +40,6 @@ class Cycle:
 
     def set_lyapunov(self, lyapunov):
         self.lyapunov = lyapunov
-        self.lyapunov_drift = 0 if (self.count == 1) else (self.lyapunov - self.previous_cycle_lyapunov)
+        self.lyapunov_drift = 0 if (self.count == 0) else (self.lyapunov - self.previous_cycle_lyapunov)
         self.cumulative_drift += self.lyapunov_drift
-        self.time_avg_cond_drift = 0 if (self.count == 1) else self.cumulative_drift / (self.count - 1)
+        self.time_avg_cond_drift = 0 if (self.count == 0) else self.cumulative_drift / self.count
