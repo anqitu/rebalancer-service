@@ -125,11 +125,11 @@ class Simulator:
         setting = self.setting
         cost_per_bike = setting.peak_cost
         cost_coef = setting.cost_coef
-        return math.floor(station_snapshot.next_cycle_target_bike_count \
+        return max(math.floor(station_snapshot.next_cycle_target_bike_count \
                + station_snapshot.expected_outgoing_bike_count \
                - station_snapshot.available_bike_count_before_rebalance \
                - station_snapshot.expected_incoming_bike_count \
-               - cost_coef * cost_per_bike)
+               - cost_coef * cost_per_bike), -1 * station_snapshot.available_bike_count_before_rebalance)
 
     def __set_supply_demand_gap_after_rebalance(self):
         for station_snapshot in self.station_snapshots.values():
