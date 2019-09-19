@@ -1,8 +1,11 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 from datetime import datetime
 from flask_cors import CORS
 import pandas as pd
 from datetime import timedelta
+import os
+import zipfile
+import io
 
 from services.simulator import Simulator
 from constants import *
@@ -228,6 +231,22 @@ def advance_steps(steps):
         simulator.simulate_rides()
         record_cycle_results()
     return jsonify(get_step_response())
+
+@app.route("/download", methods = ['GET'])
+def download_results():
+    zipdir(RESULTS_PATH)
+    return send_file(RESULTS_PATH + '.zip',
+                        mimetype = 'application/zip',
+                        attachment_filename= RESULTS_PATH + '.zip',
+                        as_attachment = True)
+
+def zipdir(path):
+    zipf = zipfile.ZipFile(path + '.zip', 'w', zipfile.ZIP_DEFLATED)
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            zipf.write(os.path.join(root, file))
+    zipf.close()
+
 
 if __name__ == "__main__":
     app.run(debug=True)
