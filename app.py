@@ -193,11 +193,9 @@ def get_status():
 
 @app.route("/step/{}".format(STATUS_START), methods = ['POST'])
 def start_simulation():
-    updated_settings = request.form['settings']
+    updated_settings = request.json['settings']
     for attribute, name in settings_mapper.items():
-        updated_value = updated_settings[name]
-        updated_value = float(updated_value) if '.' in updated_value else int(updated_value)
-        setattr(simulator.setting, attribute, updated_value)
+        setattr(simulator.setting, attribute, updated_settings[name])
     simulator.start_simulation()
     return jsonify(get_step_response())
 
