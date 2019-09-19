@@ -1,14 +1,30 @@
 import pandas as pd
-
-data_path = 'data/london_journeys_count_with_2h_interval_by_cluster.csv'
+from utils import *
+from constants import *
 
 class PredictionService:
 
-    def __init__(self):
-        self.journeys_count_df = pd.read_csv(data_path)
-        self.journeys_count_df['Time'] = pd.to_datetime(self.journeys_count_df['Time'],infer_datetime_format=True)
+    def __init__(self, data_service):
 
-    def get_journey_data(self, station_id, time):
+        self.journeys_count_df = data_service.journeys_count_df.copy()
+        self._make_predictions()
 
-        record = self.journeys_count_df[(self.journeys_count_df['Station ID'] == station_id) & (self.journeys_count_df['Time'] == time)]
-        return {'out': int(record['Out'].values[0]), 'in': int(record['In'].values[0])}
+
+    def get_predict_flow_by_time(self, time):
+
+        records = self.journeys_count_df[(self.journeys_count_df['Time'] == time)]
+        records = {row['Station ID']: {'in': int(row['In']), 'out': int(row['Out'])} for index, row in records.iterrows()}
+        return records
+
+    def _make_predictions(self):
+        print_info("Start making predictions")
+        self.journeys_count_df['Hour'] = self.journeys_count_df['Time'].dt.hour
+
+        prediction_in = self.journeys_count_df.groupby(['Station ID', 'Hour'])[['In']].rolling(window=7).mean()
+        prediction_in.index = prediction_in.index.get_level_values(2)
+        self.journeys_count_df['In'] = prediction_in.round(0)
+
+        prediction_out = self.journeys_count_df.groupby(['Station ID', 'Hour'])[['Out']].rolling(window=7).mean()
+        prediction_out.index = prediction_out.index.get_level_values(2)
+        self.journeys_count_df['Out'] = prediction_out.round(0)
+        print_info("Finish making predictions")

@@ -9,6 +9,10 @@ class Cycle:
         self.rebalanced_bike_count = 0
         self.rebalance_cost = 0
         self.moved_bike_count = 0
+        self.distance_moved = 0
+        self.trips = 0
+        self.supply_demand_gap_before_rebalance = 0
+        self.supply_demand_gap_after_rebalance = 0
 
         if previous_cycle:
             self.previous_cycle_lyapunov = previous_cycle.lyapunov
@@ -17,12 +21,14 @@ class Cycle:
             self.cumulative_rebalance_cost = previous_cycle.cumulative_rebalance_cost
             self.cumulative_drift = previous_cycle.cumulative_drift
             self.time_avg_rebalance_cost = self.cumulative_rebalance_cost / self.count
+            self.cumulative_distance_moved = previous_cycle.cumulative_distance_moved
         else:
             self.cumulative_moved_bike_count = 0
             self.cumulative_rebalanced_bike_count = 0
             self.cumulative_rebalance_cost = 0
             self.cumulative_drift = 0
             self.time_avg_rebalance_cost = 0
+            self.cumulative_distance_moved = 0
 
     def set_station_snapshots(self, station_snapshots):
         self.station_snapshots = station_snapshots
@@ -33,6 +39,14 @@ class Cycle:
         self.rebalance_cost = sum([rebalance_schedule.rebalance_cost for rebalance_schedule in rebalance_schedules])
         self.cumulative_rebalanced_bike_count += self.rebalanced_bike_count
         self.cumulative_rebalance_cost += self.rebalance_cost
+        self.cumulative_distance_moved += self.distance_moved
+        self.trips = len(rebalance_schedules)
+
+    def set_supply_demand_gap_before_rebalance(self):
+        self.supply_demand_gap_before_rebalance = sum([station_snapshot.supply_demand_gap_before_rebalance for station_snapshot in self.station_snapshots if station_snapshot.supply_demand_gap_before_rebalance > 0])
+
+    def set_supply_demand_gap_after_rebalance(self):
+        self.supply_demand_gap_after_rebalance = sum([station_snapshot.supply_demand_gap_after_rebalance for station_snapshot in self.station_snapshots if station_snapshot.supply_demand_gap_after_rebalance > 0])
 
     def set_moved_bike_count(self):
         self.moved_bike_count = sum([station_snapshot.actual_incoming_bike_count for station_snapshot in self.station_snapshots])

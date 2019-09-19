@@ -1,0 +1,6 @@
+,0
+intervalHour,2.0
+peakCost,2.0
+offPeakCost,1.0
+budgetPerCycle,5000.0
+costCoef,0.2

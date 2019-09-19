@@ -1,6 +1,8 @@
 from flask import Flask, jsonify, request
 from datetime import datetime
 from flask_cors import CORS
+import pandas as pd
+from datetime import timedelta
 
 from services.simulator import Simulator
 from constants import *
@@ -9,6 +11,12 @@ app = Flask(__name__)
 CORS(app)
 
 simulator = Simulator()
+
+settings_mapper = {'interval_hour': 'intervalHour',
+                    'peak_cost': 'peakCost',
+                    'off_peak_cost': 'offPeakCost',
+                    'budget_per_cycle': 'budgetPerCycle',
+                    'cost_coef': 'costCoef'}
 
 def get_stations():
     stations = []
@@ -29,11 +37,7 @@ def get_settings():
     settings = simulator.setting.__dict__
     settings_response = {}
 
-    for setting, name in {'interval_hour': 'intervalHour',
-                            'peak_cost': 'peakCost',
-                            'off_peak_cost': 'offPeakCost',
-                            'budget_per_cycle': 'budgetPerCycle',
-                            'cost_coef': 'costCoef'}.items():
+    for setting, name in settings_mapper.items():
         settings_response[name] = settings[setting]
     return settings_response
 
@@ -56,13 +60,18 @@ def get_statistics():
     current_cycle = simulator.simulation.cycles[-1]
 
     for attribute, name in {'count': 'Cycle Count',
-                            'moved_bike_count': 'Moved Bike',
-                            'cumulative_moved_bike_count': 'Cumulative Moved Bike',
-                            'rebalanced_bike_count': 'Rebalanced Bike',
-                            'cumulative_rebalanced_bike_count': 'Cumulative Rebalanced Bike',
+                            'moved_bike_count': 'Moved Bikes',
+                            'cumulative_moved_bike_count': 'Cumulative Moved Bikes',
+                            'rebalanced_bike_count': 'Rebalanced Bikes',
+                            'cumulative_rebalanced_bike_count': 'Cumulative Rebalanced Bikes',
                             'rebalance_cost': 'Rebalanced Cost',
                             'cumulative_rebalance_cost': 'Cumulative Rebalance Cost',
                             'time_avg_rebalance_cost': 'Time Average Rebalance Cost',
+                            'trips': 'Trips',
+                            'distance_moved': 'Distance Moved',
+                            'cumulative_distance_moved': 'Cumulative Distance Moved',
+                            'supply_demand_gap_before_rebalance': 'Supply Demand Gap Before Rebalance',
+                            'supply_demand_gap_after_rebalance': 'Supply Demand Gap After Rebalance',
                             'lyapunov': 'Lyapunov',
                             'lyapunov_drift': 'Lyapunov Drift',
                             'cumulative_drift': 'Cumulative Lyapunov',
@@ -117,6 +126,30 @@ def get_step_response():
 
     return response
 
+def record_cycle_results():
+    statistics = get_statistics()
+
+    if simulator.cycle.count == 0:
+        results = pd.DataFrame(columns = ['Time'] + [value['name'] for value in statistics])
+    else:
+        results = pd.read_csv(CYCLE_RESULTS_PATH)
+
+    record = {value['name']:value['value'] for value in statistics}
+    record['Time'] = simulator.time - timedelta(hours=simulator.setting.interval_hour)
+    results = results.append(record, ignore_index=True )
+    results.to_csv(CYCLE_RESULTS_PATH, index = False)
+
+    station_snapshots = simulator.cycle.station_snapshots
+    stations_ids = [station_snapshot.station.id for station_snapshot in station_snapshots]
+    if simulator.cycle.count == 0:
+        results = pd.DataFrame(data = {'Station ID': stations_ids})
+    else:
+        results = pd.read_csv(SUPPLY_DEMAND_GAP_PATH)
+    results['Cycle{} (Bef)'.format(simulator.cycle.count)] = [station_snapshot.supply_demand_gap_before_rebalance for station_snapshot in station_snapshots]
+    results['Cycle{} (Aft)'.format(simulator.cycle.count)] = [station_snapshot.supply_demand_gap_after_rebalance for station_snapshot in station_snapshots]
+    results.to_csv(SUPPLY_DEMAND_GAP_PATH, index = False)
+
+
 def get_result():
     response = []
 
@@ -129,6 +162,15 @@ def get_result():
                             'time_avg_cond_drift': 'Time Average Conditional Drift',
                             'obj_function': 'Objective Function'}.items():
         response.append({'name': name, 'value': getattr(result, attribute)})
+
+
+    settings = get_settings()
+    settings_df = pd.DataFrame.from_dict(settings, orient='index')
+    settings_df.to_csv(SETTING_PATH)
+
+    result = {value['name']:value['value'] for value in response}
+    result_df = pd.DataFrame.from_dict(result, orient='index')
+    result_df.to_csv(SIMULATION_RESULT_PATH)
 
     return response
 
@@ -148,9 +190,11 @@ def get_status():
 
 @app.route("/step/{}".format(STATUS_START), methods = ['POST'])
 def start_simulation():
-    setting = request.form
-    for key, value in setting.items():
-        setattr(simulator.setting, key, value)
+    updated_settings = request.form
+    for attribute, name in settings_mapper.items():
+        updated_value = updated_settings[name]
+        updated_value = float(updated_value) if '.' in updated_value else int(updated_value)
+        setattr(simulator.setting, attribute, updated_value)
     simulator.start_simulation()
     return jsonify(get_step_response())
 
@@ -167,6 +211,7 @@ def rebalance():
 @app.route("/step/{}".format(STATUS_RIDES), methods = ['POST'])
 def simulate_rides():
     simulator.simulate_rides()
+    record_cycle_results()
     return jsonify(get_step_response())
 
 @app.route("/step/{}".format(STATUS_FINISH), methods = ['POST'])
@@ -174,6 +219,15 @@ def finish_simulation():
     result = get_result()
     simulator.finish_simulation()
     return jsonify(get_finish_simulation_response(result))
+
+@app.route("/advance/<steps>".format(STATUS_FINISH), methods = ['POST'])
+def advance_steps(steps):
+    for i in range(int(steps)):
+        simulator.next_cycle()
+        simulator.rebalance()
+        simulator.simulate_rides()
+        record_cycle_results()
+    return jsonify(get_step_response())
 
 if __name__ == "__main__":
     app.run(debug=True)
