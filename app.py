@@ -193,7 +193,7 @@ def get_status():
 
 @app.route("/step/{}".format(STATUS_START), methods = ['POST'])
 def start_simulation():
-    updated_settings = request.form
+    updated_settings = request.form['settings']
     for attribute, name in settings_mapper.items():
         updated_value = updated_settings[name]
         updated_value = float(updated_value) if '.' in updated_value else int(updated_value)
