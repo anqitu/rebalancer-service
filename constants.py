@@ -11,7 +11,7 @@ STATUS_FINISH = 'finish'
 STATUS_NONE = None
 
 START_TIME = datetime(year = 2017, month = 9, day = 1, hour = 0)
-DEFAULT_SETTINGS = Settings(interval_hour = 2, peak_cost = 1, off_peak_cost = 1, budget_per_cycle = 1000, cost_coef = 0.2)
+DEFAULT_SETTINGS = Settings(interval_hour = 2, peak_cost = 1, off_peak_cost = 1, budget_per_cycle = 1500, cost_coef = 0.2)
 MOVING_AVERAGE_DAYS = 7
 
 RESULTS_PATH = 'results'
