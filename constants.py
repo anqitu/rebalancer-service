@@ -1,6 +1,7 @@
 from datetime import datetime
 from models.settings import Settings
 import os
+from utils import *
 
 STATUS_START = 'start'
 STATUS_REBALANCE = 'rebalance'
@@ -14,6 +15,7 @@ DEFAULT_SETTINGS = Settings(interval_hour = 2, peak_cost = 1, off_peak_cost = 1,
 MOVING_AVERAGE_DAYS = 7
 
 RESULTS_PATH = 'results'
+check_dir(RESULTS_PATH)
 CYCLE_RESULTS_PATH = os.path.join(RESULTS_PATH, 'cycle_results.csv')
 SIMULATION_RESULT_PATH = os.path.join(RESULTS_PATH, 'simulation_result.csv')
 SETTING_PATH = os.path.join(RESULTS_PATH, 'setting.csv')
