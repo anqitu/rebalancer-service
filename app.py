@@ -15,8 +15,7 @@ CORS(app)
 
 simulator = Simulator()
 
-settings_mapper = {'interval_hour': 'intervalHour',
-                    'peak_cost': 'peakCost',
+settings_mapper = {'peak_cost': 'peakCost',
                     'off_peak_cost': 'offPeakCost',
                     'budget_per_cycle': 'budgetPerCycle',
                     'cost_coef': 'costCoef',
@@ -231,8 +230,17 @@ def finish_simulation():
 
 @app.route("/advance/<steps>".format(STATUS_FINISH), methods = ['POST'])
 def advance_steps(steps):
+    # Start simulation if settings in response
+    if "settings" in request.json:
+        updated_settings = request.json['settings']
+        for attribute, name in settings_mapper.items():
+            setattr(simulator.setting, attribute, updated_settings[name])
+        simulator.start_simulation()
+
     for i in range(int(steps)):
-        simulator.next_cycle()
+        # Call next cycle if not a start
+        if "settings" not in request.json:
+            simulator.next_cycle()
         simulator.rebalance()
         simulator.simulate_rides()
         record_cycle_results()

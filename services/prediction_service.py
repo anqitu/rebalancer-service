@@ -12,6 +12,8 @@ class PredictionService:
         elif setting.prediction_mode == PREDICTION_MODE_LSTM:
             self.journeys_predict_df = pd.read_csv(JOURNEYS_PREDICTION_LSTM, parse_dates=['Time'])
 
+        print_info('Predicting using {}'.format(setting.prediction_mode))
+
         self.journeys_predict_df['Hour'] = self.journeys_predict_df['Time'].dt.hour
         # self._make_predictions()
 

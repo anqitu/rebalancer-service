@@ -33,12 +33,10 @@ class Simulator:
         for station_snapshot in self.station_snapshots.values():
             station_snapshot.set_initial_available_bike_count(0.7)
 
-    # def configure_setting(self, setting):
-    #     self.setting = setting
-
     def start_simulation(self):
+        print_info('Start Simulation')
         self.simulation = Simulation(self.setting)
-        self.data_service.update_interval_hour(self.setting.interval_hour)
+        # self.data_service.update_interval_hour(self.setting.interval_hour)
         self.prediction_service = PredictionService(self.setting)
 
         self.cycle = Cycle(0, START_TIME)
@@ -50,6 +48,7 @@ class Simulator:
         self.cycle.set_supply_demand_gap_before_rebalance()
 
     def next_cycle(self):
+        print_info('Start Next Cycle')
         self.cycle = Cycle(self.cycle.count + 1, self.time, self.cycle)
         self.simulation.add_cycle(self.cycle)
         self.station_snapshots = {station_snapshot.station.id: StationSnapshot(previous_station_snapshot = station_snapshot) for station_snapshot in self.station_snapshots.values()}
@@ -60,12 +59,14 @@ class Simulator:
         self.cycle.set_supply_demand_gap_before_rebalance()
 
     def rebalance(self):
+        print_info('Start Rebalance')
         self.cycle.set_rebalance_schedules(self.__calculate_rebalance_schedules())
         self.__set_supply_demand_gap_after_rebalance()
         self.cycle.set_supply_demand_gap_after_rebalance()
         self.__update_status(STATUS_REBALANCE)
 
     def simulate_rides(self):
+        print_info('Start Rides Simulation')
         self.__set_stations_available_available_bike_count_after_rides()
         self.cycle.set_moved_bike_count()
         self.__update_status(STATUS_RIDES)

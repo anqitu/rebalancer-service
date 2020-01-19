@@ -19,10 +19,10 @@ class DataService:
             stations = json.load(json_file)
         return [Station(station['name'], station['id'], station['coordinates'], station['capacity']) for station in stations]
 
-    """@TODO #remove later"""
-    def update_interval_hour(self, interval_hours):
-        grouper = pd.Grouper(key='Time', freq=str(interval_hours*60) + 'Min', label='right')
-        groups = self.journeys_count_df.groupby(['Station ID', grouper]).agg({'Out': 'sum', 'In': 'sum'})
-        groups = groups.reset_index()
-        groups['Time'] = groups['Time'] - pd.Timedelta(hours=interval_hours)
-        self.journeys_count_df = groups
+    # """@TODO #remove later"""
+    # def update_interval_hour(self, interval_hours):
+    #     grouper = pd.Grouper(key='Time', freq=str(interval_hours*60) + 'Min', label='right')
+    #     groups = self.journeys_count_df.groupby(['Station ID', grouper]).agg({'Out': 'sum', 'In': 'sum'})
+    #     groups = groups.reset_index()
+    #     groups['Time'] = groups['Time'] - pd.Timedelta(hours=interval_hours)
+    #     self.journeys_count_df = groups
