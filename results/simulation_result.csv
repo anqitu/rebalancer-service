@@ -1,8 +1,8 @@
 ,0
-Cycle Count,11.0
-Simulation Hours,24.0
-Moved Bike Total Count,34133.0
-Rebalanced Bike Total Count,1849.0
-Time Average Cost,312.54545454545456
-Time Average Conditional Drift,7612.909090909091
-Objective Function,7675.418181818182
+Cycle Count,1.0
+Simulation Hours,4.0
+Moved Bike Total Count,899.0
+Rebalanced Bike Total Count,0.0
+Time Average Cost,0.0
+Time Average Conditional Drift,7637.5
+Objective Function,7637.5

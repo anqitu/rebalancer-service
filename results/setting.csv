@@ -1,6 +1,7 @@
 ,0
-intervalHour,2.0
-peakCost,2.0
-offPeakCost,1.0
-budgetPerCycle,1500.0
+intervalHour,2
+peakCost,1
+offPeakCost,1
+budgetPerCycle,1500
 costCoef,0.2
+predictionMode,Past 7 Days Moving Average

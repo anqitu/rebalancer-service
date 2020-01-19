@@ -39,7 +39,7 @@ class Simulator:
     def start_simulation(self):
         self.simulation = Simulation(self.setting)
         self.data_service.update_interval_hour(self.setting.interval_hour)
-        self.prediction_service = PredictionService(self.data_service)
+        self.prediction_service = PredictionService(self.setting)
 
         self.cycle = Cycle(0, START_TIME)
         self.simulation.add_cycle(self.cycle)

@@ -19,7 +19,8 @@ settings_mapper = {'interval_hour': 'intervalHour',
                     'peak_cost': 'peakCost',
                     'off_peak_cost': 'offPeakCost',
                     'budget_per_cycle': 'budgetPerCycle',
-                    'cost_coef': 'costCoef'}
+                    'cost_coef': 'costCoef',
+                    'prediction_mode': 'predictionMode'}
 
 def get_stations():
     stations = []
@@ -190,6 +191,13 @@ def get_finish_simulation_response(result):
 @app.route("/status", methods = ['GET'])
 def get_status():
     return jsonify(get_status_response())
+
+@app.route("/config", methods = ['GET'])
+def get_config():
+    config = {
+    'predictionMode': [PREDICTION_MODE_MOVING_AVG, PREDICTION_MODE_LSTM],
+    }
+    return jsonify(config)
 
 @app.route("/step/{}".format(STATUS_START), methods = ['POST'])
 def start_simulation():
