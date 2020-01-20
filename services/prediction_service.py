@@ -7,12 +7,8 @@ class PredictionService:
 
     def __init__(self, setting):
 
-        if setting.prediction_mode == PREDICTION_MODE_MOVING_AVG:
-            self.journeys_predict_df = pd.read_csv(JOURNEYS_PREDICTION_7DMA, parse_dates=['Time'])
-        elif setting.prediction_mode == PREDICTION_MODE_LSTM:
-            self.journeys_predict_df = pd.read_csv(JOURNEYS_PREDICTION_LSTM, parse_dates=['Time'])
-
         print_info('Predicting using {}'.format(setting.prediction_mode))
+        self.journeys_predict_df = pd.read_csv(PREDICTION_DATA_PATHS[setting.prediction_mode], parse_dates=['Time'])
 
         self.journeys_predict_df['Hour'] = self.journeys_predict_df['Time'].dt.hour
         # self._make_predictions()

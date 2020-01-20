@@ -194,7 +194,7 @@ def get_status():
 @app.route("/config", methods = ['GET'])
 def get_config():
     config = {
-    'predictionMode': [PREDICTION_MODE_MOVING_AVG, PREDICTION_MODE_LSTM],
+    'predictionMode': list(PREDICTION_DATA_PATHS.keys()),
     }
     return jsonify(config)
 
@@ -238,8 +238,8 @@ def advance_steps(steps):
         simulator.start_simulation()
 
     for i in range(int(steps)):
-        # Call next cycle if not a start
-        if "settings" not in request.json:
+        # Skip if start and cycle count is 0
+        if "settings" not in request.json or i != 0:
             simulator.next_cycle()
         simulator.rebalance()
         simulator.simulate_rides()
