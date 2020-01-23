@@ -2,6 +2,8 @@ from flask import Flask, jsonify, request, send_file
 from datetime import datetime
 from flask_cors import CORS
 import pandas as pd
+import numpy as np
+from sklearn.cluster import KMeans
 from datetime import timedelta
 import os
 import zipfile
@@ -45,17 +47,32 @@ def get_settings():
     return settings_response
 
 def get_rebalance_schedules():
-    rebalance_schedules = []
+    rebalance_schedules = simulator.simulation.cycles[-1].rebalance_schedules
+    if len(rebalance_schedules) == 0:
+        return []
 
-    for schedule in simulator.simulation.cycles[-1].rebalance_schedules:
-        rebalance_schedule = {}
-        rebalance_schedule['id'] = schedule.id
-        rebalance_schedule['sourceId'] = schedule.source.id
-        rebalance_schedule['destinationId'] = schedule.destination.id
-        rebalance_schedule['count'] = schedule.rebalanced_bike_count
-        rebalance_schedules.append(rebalance_schedule)
+    if 6 <= len(rebalance_schedules) <= 10:
+        n_clusters = 2
+    else:
+        n_clusters = (len(rebalance_schedules) - 1) // 10 + 1
 
-    return rebalance_schedules
+    model = KMeans(n_clusters=n_clusters, random_state = 0)
+    X = [schedule.source.coordinates for schedule in rebalance_schedules]
+    model.fit(X)
+    print(np.unique(model.labels_, return_counts=True))
+
+    schedules_response = [[] for i in range(n_clusters)]
+    for schedule, cluster in zip(rebalance_schedules, model.labels_):
+        schedule_response = {}
+        schedule_response['id'] = schedule.id
+        schedule_response['sourceId'] = schedule.source.id
+        schedule_response['destinationId'] = schedule.destination.id
+        schedule_response['count'] = schedule.rebalanced_bike_count
+        schedules_response[cluster].append(schedule_response)
+
+    schedules_response = [schedule for schedule in schedules_response if len(schedule) > 0]
+
+    return schedules_response
 
 def get_statistics():
     statistics = []
