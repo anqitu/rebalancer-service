@@ -126,11 +126,14 @@ class Simulator:
         setting = self.setting
         cost_per_bike = setting.peak_cost
         cost_coef = setting.cost_coef
-        return max(math.floor(station_snapshot.next_cycle_target_bike_count \
+        target_rebalance_bike_count = math.floor(station_snapshot.next_cycle_target_bike_count \
                + station_snapshot.expected_outgoing_bike_count \
                - station_snapshot.available_bike_count_before_rebalance \
                - station_snapshot.expected_incoming_bike_count \
-               - cost_coef * cost_per_bike), -1 * station_snapshot.available_bike_count_before_rebalance)
+               - cost_coef * cost_per_bike)
+
+        # target_rebalance_bike_count = max(target_rebalance_bike_count, -1 * station_snapshot.available_bike_count_before_rebalance)
+        return target_rebalance_bike_count
 
     def __set_supply_demand_gap_after_rebalance(self):
         for station_snapshot in self.station_snapshots.values():
@@ -170,6 +173,7 @@ class Simulator:
             source_distances = {source_id: calculate_distance_between_stations(destination_stations[destination_id]['station'],
                                                                                source_stations[source_id]['station']) \
                                                                                for source_id in source_ids}
+            # Sort source destinations based on distance to the current destination station
             sorted_source_distances = dict(sorted(source_distances.items(), key=lambda kv: kv[1]))
             sorted_source_ids = list(sorted_source_distances.keys())
 
@@ -185,6 +189,9 @@ class Simulator:
                     rebalanced_bike_count = min(abs(source_rebalance_bike_count), math.floor(budget/cost_per_bike))
                 else:
                     rebalanced_bike_count = min(destination_rebalance_bike_count, math.floor(budget/cost_per_bike))
+
+                source_available_bike_count = self.station_snapshots[source_id].current_bike_count
+                rebalanced_bike_count = min(rebalanced_bike_count, source_available_bike_count)
 
                 destination_stations[destination_id]['rebalance_bike_count'] = destination_rebalance_bike_count - rebalanced_bike_count
                 source_stations[source_id]['rebalance_bike_count'] = source_rebalance_bike_count + rebalanced_bike_count
