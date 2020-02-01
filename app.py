@@ -17,12 +17,6 @@ CORS(app)
 
 simulator = Simulator()
 
-settings_mapper = {'peak_cost': 'peakCost',
-                    'off_peak_cost': 'offPeakCost',
-                    'budget_per_cycle': 'budgetPerCycle',
-                    'cost_coef': 'costCoef',
-                    'prediction_mode': 'predictionMode'}
-
 def get_stations():
     stations = []
 
@@ -39,10 +33,10 @@ def get_stations():
     return stations
 
 def get_settings():
-    settings = simulator.setting.__dict__
+    settings = simulator.settings.__dict__
     settings_response = {}
 
-    for setting, name in settings_mapper.items():
+    for setting, name in SETTINGS_UI_MAPPER.items():
         settings_response[name] = settings[setting]
     return settings_response
 
@@ -79,23 +73,7 @@ def get_statistics():
 
     current_cycle = simulator.simulation.cycles[-1]
 
-    for attribute, name in {'count': 'Cycle Count',
-                            'moved_bike_count': 'Moved Bikes',
-                            'cumulative_moved_bike_count': 'Cumulative Moved Bikes',
-                            'rebalanced_bike_count': 'Rebalanced Bikes',
-                            'cumulative_rebalanced_bike_count': 'Cumulative Rebalanced Bikes',
-                            'rebalance_cost': 'Rebalanced Cost',
-                            'cumulative_rebalance_cost': 'Cumulative Rebalance Cost',
-                            'time_avg_rebalance_cost': 'Time Average Rebalance Cost',
-                            'trips': 'Trips',
-                            'distance_moved': 'Distance Moved',
-                            'cumulative_distance_moved': 'Cumulative Distance Moved',
-                            'supply_demand_gap_before_rebalance': 'Supply Demand Gap Before Rebalance',
-                            'supply_demand_gap_after_rebalance': 'Supply Demand Gap After Rebalance',
-                            'lyapunov': 'Lyapunov',
-                            'lyapunov_drift': 'Lyapunov Drift',
-                            'cumulative_drift': 'Cumulative Lyapunov',
-                            'time_avg_cond_drift': 'Time Average Conditional Drift'}.items():
+    for attribute, name in STATISTICS_MAPPER.items():
         statistics.append({'name': name, 'value': getattr(current_cycle, attribute)})
 
     return statistics
@@ -146,51 +124,12 @@ def get_step_response():
 
     return response
 
-def record_cycle_results():
-    statistics = get_statistics()
-
-    if simulator.cycle.count == 0:
-        results = pd.DataFrame(columns = ['Time'] + [value['name'] for value in statistics])
-    else:
-        results = pd.read_csv(CYCLE_RESULTS_PATH)
-
-    record = {value['name']:value['value'] for value in statistics}
-    record['Time'] = simulator.time - timedelta(hours=simulator.setting.interval_hour)
-    results = results.append(record, ignore_index=True )
-    results.to_csv(CYCLE_RESULTS_PATH, index = False)
-
-    station_snapshots = simulator.cycle.station_snapshots
-    stations_ids = [station_snapshot.station.id for station_snapshot in station_snapshots]
-    if simulator.cycle.count == 0:
-        results = pd.DataFrame(data = {'Station ID': stations_ids})
-    else:
-        results = pd.read_csv(SUPPLY_DEMAND_GAP_PATH)
-    results['Cycle{} (Bef)'.format(simulator.cycle.count)] = [station_snapshot.supply_demand_gap_before_rebalance for station_snapshot in station_snapshots]
-    results['Cycle{} (Aft)'.format(simulator.cycle.count)] = [station_snapshot.supply_demand_gap_after_rebalance for station_snapshot in station_snapshots]
-    results.to_csv(SUPPLY_DEMAND_GAP_PATH, index = False)
-
-
-def get_result():
+def get_results():
     response = []
 
-    result = simulator.get_result()
-    for attribute, name in {'cycle_count': 'Cycle Count',
-                            'simulation_hour': 'Simulation Hours',
-                            'moved_bike_total_count': 'Moved Bike Total Count',
-                            'rebalanced_bike_total_count': 'Rebalanced Bike Total Count',
-                            'time_avg_cost': 'Time Average Cost',
-                            'time_avg_cond_drift': 'Time Average Conditional Drift',
-                            'obj_function': 'Objective Function'}.items():
-        response.append({'name': name, 'value': getattr(result, attribute)})
-
-
-    settings = get_settings()
-    settings_df = pd.DataFrame.from_dict(settings, orient='index')
-    settings_df.to_csv(SETTING_PATH)
-
-    result = {value['name']:value['value'] for value in response}
-    result_df = pd.DataFrame.from_dict(result, orient='index')
-    result_df.to_csv(SIMULATION_RESULT_PATH)
+    results = simulator.get_results()
+    for attribute, name in RESULTS_MAPPER.items():
+        response.append({'name': name, 'value': getattr(results, attribute)})
 
     return response
 
@@ -218,8 +157,8 @@ def get_config():
 @app.route("/step/{}".format(STATUS_START), methods = ['POST'])
 def start_simulation():
     updated_settings = request.json['settings']
-    for attribute, name in settings_mapper.items():
-        setattr(simulator.setting, attribute, updated_settings[name])
+    for attribute, name in SETTINGS_UI_MAPPER.items():
+        setattr(simulator.settings, attribute, updated_settings[name])
     simulator.start_simulation()
     return jsonify(get_step_response())
 
@@ -236,22 +175,21 @@ def rebalance():
 @app.route("/step/{}".format(STATUS_RIDES), methods = ['POST'])
 def simulate_rides():
     simulator.simulate_rides()
-    record_cycle_results()
     return jsonify(get_step_response())
 
 @app.route("/step/{}".format(STATUS_FINISH), methods = ['POST'])
 def finish_simulation():
-    result = get_result()
+    results = get_results()
     simulator.finish_simulation()
-    return jsonify(get_finish_simulation_response(result))
+    return jsonify(get_finish_simulation_response(results))
 
 @app.route("/advance/<steps>".format(STATUS_FINISH), methods = ['POST'])
 def advance_steps(steps):
     # Start simulation if settings in response
     if "settings" in request.json:
         updated_settings = request.json['settings']
-        for attribute, name in settings_mapper.items():
-            setattr(simulator.setting, attribute, updated_settings[name])
+        for attribute, name in SETTINGS_UI_MAPPER.items():
+            setattr(simulator.settings, attribute, updated_settings[name])
         simulator.start_simulation()
 
     for i in range(int(steps)):
@@ -260,15 +198,15 @@ def advance_steps(steps):
             simulator.next_cycle()
         simulator.rebalance()
         simulator.simulate_rides()
-        record_cycle_results()
     return jsonify(get_step_response())
 
 @app.route("/download", methods = ['GET'])
 def download_results():
-    zipdir(RESULTS_PATH)
-    return send_file(RESULTS_PATH + '.zip',
+    results_path = os.path.join(RESULTS_PATH, str(simulator.simulation_start_time))
+    zipdir(results_path)
+    return send_file(results_path + '.zip',
                         mimetype = 'application/zip',
-                        attachment_filename= RESULTS_PATH + '.zip',
+                        attachment_filename= results_path + '.zip',
                         as_attachment = True)
 
 def zipdir(path):

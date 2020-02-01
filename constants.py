@@ -35,3 +35,41 @@ PREDICTION_DATA_PATHS = {
     PREDICTION_MODE_GRU: 'data/london_journeys_predict_with_2h_interval_GRU.csv',
     PREDICTION_MODE_BI_LSTM: 'data/london_journeys_predict_with_2h_interval_Bidirectional LSTM.csv'
 }
+
+SETTINGS_UI_MAPPER = {'peak_cost': 'peakCost',
+                    'off_peak_cost': 'offPeakCost',
+                    'budget_per_cycle': 'budgetPerCycle',
+                    'cost_coef': 'costCoef',
+                    'prediction_mode': 'predictionMode'}
+
+SETTINGS_CSV_MAPPER = {'peak_cost': 'Peak Cost',
+                    'off_peak_cost': 'Off-Peak Cost',
+                    'budget_per_cycle': 'Budget Per Cycle',
+                    'cost_coef': 'Cost Coef',
+                    'prediction_mode': 'Prediction Mode'}
+
+STATISTICS_MAPPER = {'count': 'Cycle Count',
+    'moved_bike_count': 'Moved Bikes',
+    'cumulative_moved_bike_count': 'Cumulative Moved Bikes',
+    'rebalanced_bike_count': 'Rebalanced Bikes',
+    'cumulative_rebalanced_bike_count': 'Cumulative Rebalanced Bikes',
+    'rebalance_cost': 'Rebalanced Cost',
+    'cumulative_rebalance_cost': 'Cumulative Rebalance Cost',
+    'time_avg_rebalance_cost': 'Time Average Rebalance Cost',
+    'trips': 'Trips',
+    'distance_moved': 'Distance Moved',
+    'cumulative_distance_moved': 'Cumulative Distance Moved',
+    'supply_demand_gap_before_rebalance': 'Supply Demand Gap Before Rebalance',
+    'supply_demand_gap_after_rebalance': 'Supply Demand Gap After Rebalance',
+    'lyapunov': 'Lyapunov',
+    'lyapunov_drift': 'Lyapunov Drift',
+    'cumulative_drift': 'Cumulative Lyapunov',
+    'time_avg_cond_drift': 'Time Average Conditional Drift'}
+
+RESULTS_MAPPER = {'cycle_count': 'Cycle Count',
+    'simulation_hour': 'Simulation Hours',
+    'moved_bike_total_count': 'Moved Bike Total Count',
+    'rebalanced_bike_total_count': 'Rebalanced Bike Total Count',
+    'time_avg_cost': 'Time Average Cost',
+    'time_avg_cond_drift': 'Time Average Conditional Drift',
+    'obj_function': 'Objective Function'}

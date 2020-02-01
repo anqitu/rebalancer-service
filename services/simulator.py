@@ -1,6 +1,7 @@
 import json
 import pandas as pd
 from datetime import timedelta
+from time import time
 import random
 import math
 from collections import OrderedDict
@@ -12,7 +13,7 @@ from models.station_snapshot import StationSnapshot
 from models.station import Station
 from models.rebalance_schedule import RebalanceSchedule
 from models.result import Result
-from services.data_service import DataService
+from services.data_service import JourneyDataService, ResultDataService
 from services.prediction_service import PredictionService
 from utils import *
 from constants import *
@@ -20,24 +21,28 @@ from constants import *
 class Simulator:
 
     def __init__(self):
-        self.data_service = DataService()
+        self.journey_data_service = JourneyDataService()
+        self.result_data_service = ResultDataService()
 
-        self.setting = DEFAULT_SETTINGS
+        self.settings = DEFAULT_SETTINGS
         self.time = START_TIME
         self.__update_status(STATUS_NONE)
         self.simulation = None
-        self.cycle  = None
+        self.cycle = None
 
-        self.stations = self.data_service.get_station_data()
+        self.stations = self.journey_data_service.get_station_data()
         self.station_snapshots = {station.id: StationSnapshot(station = station) for station in self.stations}
         for station_snapshot in self.station_snapshots.values():
             station_snapshot.set_initial_available_bike_count(0.7)
 
     def start_simulation(self):
         print_info('Start Simulation')
-        self.simulation = Simulation(self.setting)
-        # self.data_service.update_interval_hour(self.setting.interval_hour)
-        self.prediction_service = PredictionService(self.setting)
+        self.simulation_start_time = int(time())
+        self.result_data_service.create_directory(self.simulation_start_time)
+
+        self.simulation = Simulation(self.settings)
+        # self.journey_data_service.update_interval_hour(self.settings.interval_hour)
+        self.prediction_service = PredictionService(self.settings)
 
         self.cycle = Cycle(0, START_TIME)
         self.simulation.add_cycle(self.cycle)
@@ -72,27 +77,39 @@ class Simulator:
         self.__update_status(STATUS_RIDES)
         self.time = self.__next_cycle_time(self.cycle.time)
 
-    def get_result(self):
+        self.__record_cycle_results()
+
+    def get_results(self):
         cycle = self.cycle
-        setting = self.setting
-        result = Result(time_avg_cost = cycle.time_avg_rebalance_cost,
+        settings = self.settings
+        results = Result(time_avg_cost = cycle.time_avg_rebalance_cost,
                         time_avg_cond_drift = cycle.time_avg_cond_drift,
-                        obj_function = cycle.time_avg_rebalance_cost * setting.cost_coef + cycle.time_avg_cond_drift,
+                        obj_function = cycle.time_avg_rebalance_cost * settings.cost_coef + cycle.time_avg_cond_drift,
                         moved_bike_total_count = cycle.cumulative_moved_bike_count,
                         rebalanced_bike_total_count = cycle.cumulative_rebalanced_bike_count,
                         cycle_count = cycle.count,
-                        simulation_hour = (cycle.count+1) * setting.interval_hour,
+                        simulation_hour = (cycle.count+1) * settings.interval_hour,
                         distance_moved = cycle.distance_moved)
-        self.simulation.set_result(result)
-        return result
+        self.simulation.set_result(results)
+        return results
 
     def finish_simulation(self):
-        self.__init__()
+        self.__record_simulation_settings()
+        self.__record_simulation_results()
         self.__update_status(STATUS_FINISH)
+
+    def __record_cycle_results(self):
+        self.result_data_service.store_cycle_results(self.simulation_start_time, self.simulation.cycles[-1])
+
+    def __record_simulation_results(self):
+        self.result_data_service.store_simulation_results(self.simulation_start_time, self.get_results())
+
+    def __record_simulation_settings(self):
+        self.result_data_service.store_simulation_settings(self.simulation_start_time, self.settings)
 
     def __set_stations_data(self):
         print_info('Start setting stations data')
-        actual_records = self.data_service.get_actual_flow_by_time(self.cycle.time)
+        actual_records = self.journey_data_service.get_actual_flow_by_time(self.cycle.time)
         prediction_records = self.prediction_service.get_predict_flow_by_time(self.cycle.time)
         prediction_records_next_cycle = self.prediction_service.get_predict_flow_by_time(self.__next_cycle_time(self.cycle.time))
 
@@ -123,9 +140,9 @@ class Simulator:
         return min(station_snapshot.next_cycle_expected_outgoing_bike_count, station_snapshot.station.capacity)
 
     def __calculate_target_rebalance_bike_count(self, station_snapshot):
-        setting = self.setting
-        cost_per_bike = setting.peak_cost
-        cost_coef = setting.cost_coef
+        settings = self.settings
+        cost_per_bike = settings.peak_cost
+        cost_coef = settings.cost_coef
         target_rebalance_bike_count = math.floor(station_snapshot.next_cycle_target_bike_count \
                + station_snapshot.expected_outgoing_bike_count \
                - station_snapshot.available_bike_count_before_rebalance \
@@ -164,8 +181,8 @@ class Simulator:
         destination_ids = sorted(list(destination_stations.keys()))
         source_ids = sorted(list(source_stations.keys()))
 
-        setting = self.setting
-        budget = setting.budget_per_cycle
+        settings = self.settings
+        budget = settings.budget_per_cycle
         cost_per_bike = self.__get_current_cost_per_bike()
 
         rebalance_schedules = []
@@ -232,7 +249,7 @@ class Simulator:
         return 0.5 * sum([(station_snapshot.available_bike_count_before_rebalance - station_snapshot.target_bike_count) ** 2 for station_snapshot in self.station_snapshots.values()])
 
     def __next_cycle_time(self, previous_time):
-        return previous_time + timedelta(hours=self.setting.interval_hour)
+        return previous_time + timedelta(hours=self.settings.interval_hour)
 
     def __update_status(self, status):
         self.current_status = status
@@ -255,6 +272,6 @@ class Simulator:
     def __get_current_cost_per_bike(self):
         current_hour = self.time.hour
         if current_hour >=8 and current_hour <20:
-            return self.setting.peak_cost
+            return self.settings.peak_cost
         else:
-            return self.setting.off_peak_cost
+            return self.settings.off_peak_cost
