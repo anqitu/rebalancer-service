@@ -23,9 +23,6 @@ MOVING_AVERAGE_DAYS = 7
 
 RESULTS_PATH = 'results'
 check_dir(RESULTS_PATH)
-CYCLE_RESULTS_PATH = os.path.join(RESULTS_PATH, 'cycle_results.csv')
-SIMULATION_RESULT_PATH = os.path.join(RESULTS_PATH, 'simulation_result.csv')
-SETTING_PATH = os.path.join(RESULTS_PATH, 'setting.csv')
 SUPPLY_DEMAND_GAP_PATH = os.path.join(RESULTS_PATH, 'supply_demand_gap.csv')
 JOURNEYS_DATA_PATH = 'data/london_journeys_count_with_2h_interval.csv'
 STATIONS_DATA_PATH = 'data/london_stations.json'
