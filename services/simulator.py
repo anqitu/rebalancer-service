@@ -78,6 +78,7 @@ class Simulator:
         self.time = self.__next_cycle_time(self.cycle.time)
 
         self.__record_cycle_results()
+        self.__record_supply_demand_gap()
 
     def get_results(self):
         cycle = self.cycle
@@ -104,6 +105,9 @@ class Simulator:
 
     def __record_cycle_results(self):
         self.result_data_service.store_cycle_results(self.simulation_start_time, self.simulation.cycles[-1])
+
+    def __record_supply_demand_gap(self):
+        self.result_data_service.store_demand_supply_gap(self.cycle.station_snapshots, self.cycle.count)
 
     def __record_simulation_results(self):
         self.result_data_service.store_simulation_results(self.simulation_start_time, self.get_results())

@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 
 from constants import *
+from utils import *
 from models.station import Station
 from sklearn.cluster import KMeans
 
@@ -35,6 +36,20 @@ class ResultDataService:
         self.result_path = os.path.join(RESULTS_PATH, str(simulation_start_time))
         os.mkdir(self.result_path)
 
+
+    def store_demand_supply_gap(self, station_snapshots, cycle_count):
+        demand_supply_gap_path = os.path.join(self.result_path, 'demand_supply_gap.csv')
+
+        station_snapshots = station_snapshots
+        stations_ids = [station_snapshot.station.id for station_snapshot in station_snapshots]
+        if cycle_count == 0:
+            results = pd.DataFrame(data = {'Station ID': stations_ids})
+        else:
+            results = pd.read_csv(demand_supply_gap_path)
+        results['Cycle{} (Bef)'.format(cycle_count)] = [station_snapshot.supply_demand_gap_before_rebalance for station_snapshot in station_snapshots]
+        results['Cycle{} (Aft)'.format(cycle_count)] = [station_snapshot.supply_demand_gap_after_rebalance for station_snapshot in station_snapshots]
+        results.to_csv(demand_supply_gap_path, index = False)
+
     def store_cycle_results(self, simulation_start_time, cycle_results):
         cycle_results_path = os.path.join(self.result_path, 'cycle_results.csv')
 
@@ -50,15 +65,8 @@ class ResultDataService:
         results = results.append(record, ignore_index=True)
         results.to_csv(cycle_results_path, index = False)
 
-        # station_snapshots = simulator.cycle.station_snapshots
-        # stations_ids = [station_snapshot.station.id for station_snapshot in station_snapshots]
-        # if simulator.cycle.count == 0:
-        #     results = pd.DataFrame(data = {'Station ID': stations_ids})
-        # else:
-        #     results = pd.read_csv(supply_demand_gap_path)
-        # results['Cycle{} (Bef)'.format(simulator.cycle.count)] = [station_snapshot.supply_demand_gap_before_rebalance for station_snapshot in station_snapshots]
-        # results['Cycle{} (Aft)'.format(simulator.cycle.count)] = [station_snapshot.supply_demand_gap_after_rebalance for station_snapshot in station_snapshots]
-        # results.to_csv(supply_demand_gap_path, index = False)
+        save_demand_supply_gap_plot(self.result_path)
+        save_usage_vs_rebalance_plot(self.result_path)
 
     def store_simulation_results(self, simulation_start_time, results):
         results = results.__dict__
