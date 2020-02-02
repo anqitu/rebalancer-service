@@ -97,6 +97,7 @@ class Simulator:
         self.__record_simulation_settings()
         self.__record_simulation_results()
         self.__update_status(STATUS_FINISH)
+        self.time = START_TIME
 
     def get_all_simulation_records(self):
         return self.result_data_service.fetch_simulation_data()

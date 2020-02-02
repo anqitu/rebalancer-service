@@ -107,7 +107,7 @@ class ResultDataService:
                     simulation_data.append({'name': name, 'value': value})
             except IOError:
                 print("{} not accessible".format(settings_path))
-                for name, value in settings.items():
+                for name in SETTINGS_CSV_MAPPER.values():
                     simulation_data.append({'name': name, 'value': 'NA'})
 
             results_path = os.path.join(dir, 'simulation_result.json')
@@ -118,11 +118,11 @@ class ResultDataService:
                     simulation_data.append({'name': name, 'value': value})
             except IOError:
                 print("{} not accessible".format(results_path))
-                for name, value in results.items():
+                for name in RESULTS_MAPPER.values():
                     simulation_data.append({'name': name, 'value': 'NA'})
 
             data.append({'id': unix_time, 'data': simulation_data})
 
-        headers = ['Time'] + list(settings.keys()) + list(results.keys())
+        headers = ['Time'] + list(SETTINGS_CSV_MAPPER.values()) + list(RESULTS_MAPPER.values())
 
         return {'data': data, 'headers': headers}

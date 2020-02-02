@@ -8,6 +8,7 @@ from datetime import timedelta
 import os
 import zipfile
 import io
+import shutil
 
 from services.simulator import Simulator
 from constants import *
@@ -217,6 +218,25 @@ def download_result(unix_time):
                         mimetype = 'application/zip',
                         attachment_filename= results_path + '.zip',
                         as_attachment = True)
+
+@app.route("/delete/<unix_time>", methods = ['GET'])
+def detele_result(unix_time):
+    results_path = os.path.join(RESULTS_PATH, unix_time)
+    try:
+        shutil.rmtree(results_path)
+        response = jsonify(success=True)
+        response.status_code = 200
+    except Exception as e:
+        response = jsonify(success=False)
+        response.status_code = 401
+
+    try:
+        shutil.rmtree(results_path + '.zip')
+    except Exception as e:
+        print(e)
+
+    return response
+
 
 @app.route("/records", methods = ['GET'])
 def get_simulation_records():
