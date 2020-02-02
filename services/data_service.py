@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import json
 import os
+from datetime import datetime
 
 from constants import *
 from models.station import Station
@@ -88,3 +89,40 @@ class ResultDataService:
         settings_df = pd.DataFrame.from_dict(data, orient='index').reset_index()
         settings_df.columns = ['setting', 'value']
         settings_df.to_csv(csv_path, index = False)
+
+    def fetch_simulation_data(self):
+        simulation_unix_times = sorted([int(name) for name in os.listdir(RESULTS_PATH) if not name.endswith('DS_Store') and not name.endswith('zip')])
+
+        data = []
+        for unix_time in simulation_unix_times:
+            simulation_data = []
+            dir = os.path.join(RESULTS_PATH, str(unix_time))
+            simulation_data.append({'name': 'Time', 'value': datetime.utcfromtimestamp(unix_time).strftime('%Y/%m/%d %H:%M:%S')})
+
+            settings_path = os.path.join(dir, 'setting.json')
+            try:
+                with open(settings_path) as f:
+                    settings = json.load(f)
+                for name, value in settings.items():
+                    simulation_data.append({'name': name, 'value': value})
+            except IOError:
+                print("{} not accessible".format(settings_path))
+                for name, value in settings.items():
+                    simulation_data.append({'name': name, 'value': 'NA'})
+
+            results_path = os.path.join(dir, 'simulation_result.json')
+            try:
+                with open(results_path) as f:
+                    results = json.load(f)
+                for name, value in results.items():
+                    simulation_data.append({'name': name, 'value': value})
+            except IOError:
+                print("{} not accessible".format(results_path))
+                for name, value in results.items():
+                    simulation_data.append({'name': name, 'value': 'NA'})
+
+            data.append({'id': unix_time, 'data': simulation_data})
+
+        headers = ['Time'] + list(settings.keys()) + list(results.keys())
+
+        return {'data': data, 'headers': headers}

@@ -209,6 +209,19 @@ def download_results():
                         attachment_filename= results_path + '.zip',
                         as_attachment = True)
 
+@app.route("/download/<unix_time>", methods = ['GET'])
+def download_result(unix_time):
+    results_path = os.path.join(RESULTS_PATH, unix_time)
+    zipdir(results_path)
+    return send_file(results_path + '.zip',
+                        mimetype = 'application/zip',
+                        attachment_filename= results_path + '.zip',
+                        as_attachment = True)
+
+@app.route("/records", methods = ['GET'])
+def get_simulation_records():
+    return jsonify(simulator.get_all_simulation_records())
+
 def zipdir(path):
     zipf = zipfile.ZipFile(path + '.zip', 'w', zipfile.ZIP_DEFLATED)
     for root, dirs, files in os.walk(path):

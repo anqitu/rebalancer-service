@@ -98,6 +98,9 @@ class Simulator:
         self.__record_simulation_results()
         self.__update_status(STATUS_FINISH)
 
+    def get_all_simulation_records(self):
+        return self.result_data_service.fetch_simulation_data()
+
     def __record_cycle_results(self):
         self.result_data_service.store_cycle_results(self.simulation_start_time, self.simulation.cycles[-1])
 
