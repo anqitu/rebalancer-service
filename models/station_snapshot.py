@@ -26,7 +26,7 @@ class StationSnapshot:
 
     def set_target_bike_count(self, target_bike_count):
         self.target_bike_count = target_bike_count
-        self.supply_demand_gap_before_rebalance =  self.target_bike_count - self.available_bike_count_before_rebalance
+        self.demand_supply_gap_before_rebalance =  self.target_bike_count - self.available_bike_count_before_rebalance
 
     def set_next_cycle_expected_incoming_bike_count(self, next_cycle_expected_incoming_bike_count):
         self.next_cycle_expected_incoming_bike_count = next_cycle_expected_incoming_bike_count
@@ -52,8 +52,8 @@ class StationSnapshot:
     def set_actual_outgoing_bike_count(self, actual_outgoing_bike_count):
         self.actual_outgoing_bike_count = actual_outgoing_bike_count
 
-    def calculate_supply_demand_gap_after_rebalance(self):
-        self.supply_demand_gap_after_rebalance = self.target_bike_count - self.available_bike_count_after_rebalance
+    def calculate_demand_supply_gap_after_rebalance(self):
+        self.demand_supply_gap_after_rebalance = self.target_bike_count - self.available_bike_count_after_rebalance
 
     def calculate_available_bike_count_after_rides(self):
         self.available_bike_count_after_rides = max(self.available_bike_count_after_rebalance \

@@ -1,2 +1,0 @@
-Time,Cycle Count,Moved Bikes,Cumulative Moved Bikes,Rebalanced Bikes,Cumulative Rebalanced Bikes,Rebalanced Cost,Cumulative Rebalance Cost,Time Average Rebalance Cost,Trips,Distance Moved,Cumulative Distance Moved,Supply Demand Gap Before Rebalance,Supply Demand Gap After Rebalance,Lyapunov,Lyapunov Drift,Cumulative Lyapunov,Time Average Conditional Drift
-2017-09-10,0,871,871,0,0,0,0,0,0,0,0,0,0,136199.0,0,0,0

@@ -46,8 +46,8 @@ class ResultDataService:
             results = pd.DataFrame(data = {'Station ID': stations_ids})
         else:
             results = pd.read_csv(demand_supply_gap_path)
-        results['Cycle{} (Bef)'.format(cycle_count)] = [station_snapshot.supply_demand_gap_before_rebalance for station_snapshot in station_snapshots]
-        results['Cycle{} (Aft)'.format(cycle_count)] = [station_snapshot.supply_demand_gap_after_rebalance for station_snapshot in station_snapshots]
+        results['Cycle{} (Bef)'.format(cycle_count)] = [station_snapshot.demand_supply_gap_before_rebalance for station_snapshot in station_snapshots]
+        results['Cycle{} (Aft)'.format(cycle_count)] = [station_snapshot.demand_supply_gap_after_rebalance for station_snapshot in station_snapshots]
         results.to_csv(demand_supply_gap_path, index = False)
 
     def store_cycle_results(self, simulation_start_time, cycle_results):

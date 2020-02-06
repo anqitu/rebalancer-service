@@ -1,6 +1,0 @@
-setting,value
-Peak Cost,1
-Off-Peak Cost,1
-Budget Per Cycle,1500
-Cost Coef,0.2
-Prediction Mode,Past 7 Days Moving Average

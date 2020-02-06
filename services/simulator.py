@@ -50,7 +50,7 @@ class Simulator:
         self.__update_status(STATUS_START)
 
         self.__set_stations_data()
-        self.cycle.set_supply_demand_gap_before_rebalance()
+        self.cycle.set_demand_supply_gap_before_rebalance()
 
     def next_cycle(self):
         print_info('Start Next Cycle')
@@ -61,13 +61,13 @@ class Simulator:
         self.__update_status(STATUS_NEXT_CYCLE)
 
         self.__set_stations_data()
-        self.cycle.set_supply_demand_gap_before_rebalance()
+        self.cycle.set_demand_supply_gap_before_rebalance()
 
     def rebalance(self):
         print_info('Start Rebalance')
         self.cycle.set_rebalance_schedules(self.__calculate_rebalance_schedules())
-        self.__set_supply_demand_gap_after_rebalance()
-        self.cycle.set_supply_demand_gap_after_rebalance()
+        self.__set_demand_supply_gap_after_rebalance()
+        self.cycle.set_demand_supply_gap_after_rebalance()
         self.__update_status(STATUS_REBALANCE)
 
     def simulate_rides(self):
@@ -78,19 +78,20 @@ class Simulator:
         self.time = self.__next_cycle_time(self.cycle.time)
 
         self.__record_cycle_results()
-        self.__record_supply_demand_gap()
+        self.__record_demand_supply_gap()
 
     def get_results(self):
         cycle = self.cycle
         settings = self.settings
-        results = Result(time_avg_cost = cycle.time_avg_rebalance_cost,
-                        time_avg_cond_drift = cycle.time_avg_cond_drift,
-                        obj_function = cycle.time_avg_rebalance_cost * settings.cost_coef + cycle.time_avg_cond_drift,
+        results = Result(time_avg_cost = round(cycle.time_avg_rebalance_cost, 3),
+                        time_avg_cond_drift = round(cycle.time_avg_cond_drift, 3),
+                        obj_function = round(cycle.time_avg_rebalance_cost * settings.cost_coef + cycle.time_avg_cond_drift, 3),
                         moved_bike_total_count = cycle.cumulative_moved_bike_count,
                         rebalanced_bike_total_count = cycle.cumulative_rebalanced_bike_count,
-                        cycle_count = cycle.count,
+                        total_cycles = cycle.count + 1,
                         simulation_hour = (cycle.count+1) * settings.interval_hour,
-                        distance_moved = cycle.distance_moved)
+                        distance_moved = cycle.distance_moved,
+                        demand_supply_gap_total_decrement = cycle.cumulative_demand_supply_gap_decrement)
         self.simulation.set_result(results)
         return results
 
@@ -106,7 +107,7 @@ class Simulator:
     def __record_cycle_results(self):
         self.result_data_service.store_cycle_results(self.simulation_start_time, self.simulation.cycles[-1])
 
-    def __record_supply_demand_gap(self):
+    def __record_demand_supply_gap(self):
         self.result_data_service.store_demand_supply_gap(self.cycle.station_snapshots, self.cycle.count)
 
     def __record_simulation_results(self):
@@ -160,9 +161,9 @@ class Simulator:
         # target_rebalance_bike_count = max(target_rebalance_bike_count, -1 * station_snapshot.available_bike_count_before_rebalance)
         return target_rebalance_bike_count
 
-    def __set_supply_demand_gap_after_rebalance(self):
+    def __set_demand_supply_gap_after_rebalance(self):
         for station_snapshot in self.station_snapshots.values():
-            station_snapshot.calculate_supply_demand_gap_after_rebalance()
+            station_snapshot.calculate_demand_supply_gap_after_rebalance()
 
     def __set_stations_available_available_bike_count_after_rides(self):
         for station_snapshot in self.station_snapshots.values():
@@ -218,32 +219,34 @@ class Simulator:
                 source_available_bike_count = self.station_snapshots[source_id].current_bike_count
                 rebalanced_bike_count = min(rebalanced_bike_count, source_available_bike_count)
 
-                destination_stations[destination_id]['rebalance_bike_count'] = destination_rebalance_bike_count - rebalanced_bike_count
-                source_stations[source_id]['rebalance_bike_count'] = source_rebalance_bike_count + rebalanced_bike_count
+                if rebalanced_bike_count != 0:
 
-                if source_stations[source_id]['rebalance_bike_count'] == 0:
-                    source_ids.remove(source_id)
+                    destination_stations[destination_id]['rebalance_bike_count'] = destination_rebalance_bike_count - rebalanced_bike_count
+                    source_stations[source_id]['rebalance_bike_count'] = source_rebalance_bike_count + rebalanced_bike_count
 
-                rebalance_cost = rebalanced_bike_count * cost_per_bike
-                budget -= rebalance_cost
-                rebalance_schedule = RebalanceSchedule(source_stations[source_id]['station'],
-                                                     destination_stations[destination_id]['station'],
-                                                     rebalanced_bike_count,
-                                                     rebalance_cost)
-                rebalance_schedules.append(rebalance_schedule)
-                self.cycle.distance_moved += source_distances[source_id]
-                # print(source_distances[source_id], self.cycle.distance_moved)
+                    if source_stations[source_id]['rebalance_bike_count'] == 0:
+                        source_ids.remove(source_id)
 
-                self.station_snapshots[destination_id].update_rebalanced_bike_count(rebalanced_bike_count)
-                self.station_snapshots[source_id].update_rebalanced_bike_count(rebalanced_bike_count * -1)
+                    rebalance_cost = rebalanced_bike_count * cost_per_bike
+                    budget -= rebalance_cost
+                    rebalance_schedule = RebalanceSchedule(source_stations[source_id]['station'],
+                                                         destination_stations[destination_id]['station'],
+                                                         rebalanced_bike_count,
+                                                         rebalance_cost)
+                    rebalance_schedules.append(rebalance_schedule)
+                    self.cycle.distance_moved += source_distances[source_id]
+                    # print(source_distances[source_id], self.cycle.distance_moved)
 
-                # print(rebalance_schedule.__dict__)
-                #
-                # print('rebalance_bike_count: ', destination_stations[destination_id]['rebalance_bike_count'])
-                # print('source_ids: ', source_ids)
+                    self.station_snapshots[destination_id].update_rebalanced_bike_count(rebalanced_bike_count)
+                    self.station_snapshots[source_id].update_rebalanced_bike_count(rebalanced_bike_count * -1)
 
-                if destination_stations[destination_id]['rebalance_bike_count'] == 0 or math.floor(budget/cost_per_bike) == 0:
-                    break
+                    # print(rebalance_schedule.__dict__)
+                    #
+                    # print('rebalance_bike_count: ', destination_stations[destination_id]['rebalance_bike_count'])
+                    # print('source_ids: ', source_ids)
+
+                    if destination_stations[destination_id]['rebalance_bike_count'] == 0 or math.floor(budget/cost_per_bike) == 0:
+                        break
 
             if math.floor(budget/cost_per_bike) == 0:
                 break

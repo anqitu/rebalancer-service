@@ -1,0 +1,10 @@
+{
+    "Cycles": 12,
+    "Hours": 24,
+    "Moved Bikes": 32951,
+    "Rebalanced Bikes": 2361,
+    "Time Average Cost": 366.636,
+    "Time Average Conditional Drift": 10861.227,
+    "Objective Function": 10934.555,
+    "Demand Supply Gap Decrement": 522
+}

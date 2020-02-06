@@ -27,8 +27,8 @@ def save_demand_supply_gap_plot(dir):
 
     fig = plt.figure(figsize=(12, 8))
     plt.title('Demand-Supply Gap', size=25, pad=20)
-    plt.plot(results_df['Hour'], results_df['Supply Demand Gap Before Rebalance'], marker = 'o', markersize = 12)
-    plt.plot(results_df['Hour'], results_df['Supply Demand Gap After Rebalance'], marker = 'v', markersize = 12)
+    plt.plot(results_df['Hour'], results_df['Demand Supply Gap Before Rebalance'], marker = 'o', markersize = 12)
+    plt.plot(results_df['Hour'], results_df['Demand Supply Gap After Rebalance'], marker = 'v', markersize = 12)
     plt.xlabel('Hours in a Day', size=20)
     plt.ylabel('No. of Shareable Bikes', size=20)
     plt.xticks(size=15, ticks=range(0, cycles, 2))
