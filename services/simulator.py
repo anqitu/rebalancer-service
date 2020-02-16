@@ -5,6 +5,7 @@ from time import time
 import random
 import math
 from collections import OrderedDict
+from sklearn.metrics import mean_squared_error
 
 from models.cycle import Cycle
 from models.settings import Settings
@@ -25,15 +26,20 @@ class Simulator:
         self.result_data_service = ResultDataService()
 
         self.settings = DEFAULT_SETTINGS
-        self.time = START_TIME
+        self.stations = self.journey_data_service.get_station_data()
         self.__update_status(STATUS_NONE)
+
+        self.__initialize()
+
+
+    def __initialize(self):
+        self.time = START_TIME
         self.simulation = None
         self.cycle = None
-
-        self.stations = self.journey_data_service.get_station_data()
         self.station_snapshots = {station.id: StationSnapshot(station = station) for station in self.stations}
         for station_snapshot in self.station_snapshots.values():
             station_snapshot.set_initial_available_bike_count(0.7)
+
 
     def start_simulation(self):
         print_info('Start Simulation')
@@ -41,7 +47,6 @@ class Simulator:
         self.result_data_service.create_directory(self.simulation_start_time)
 
         self.simulation = Simulation(self.settings)
-        # self.journey_data_service.update_interval_hour(self.settings.interval_hour)
         self.prediction_service = PredictionService(self.settings)
 
         self.cycle = Cycle(0, START_TIME)
@@ -53,6 +58,7 @@ class Simulator:
         self.cycle.set_demand_supply_gap_before_rebalance()
 
     def next_cycle(self):
+        print()
         print_info('Start Next Cycle')
         self.cycle = Cycle(self.cycle.count + 1, self.time, self.cycle)
         self.simulation.add_cycle(self.cycle)
@@ -99,7 +105,7 @@ class Simulator:
         self.__record_simulation_settings()
         self.__record_simulation_results()
         self.__update_status(STATUS_FINISH)
-        self.time = START_TIME
+        self.__initialize()
 
     def get_all_simulation_records(self):
         return self.result_data_service.fetch_simulation_data()
@@ -119,8 +125,8 @@ class Simulator:
     def __set_stations_data(self):
         print_info('Start setting stations data')
         actual_records = self.journey_data_service.get_actual_flow_by_time(self.cycle.time)
-        prediction_records = self.prediction_service.get_predict_flow_by_time(self.cycle.time)
-        prediction_records_next_cycle = self.prediction_service.get_predict_flow_by_time(self.__next_cycle_time(self.cycle.time))
+        prediction_records = self.prediction_service.get_current_cycle_traffic_prediction_by_time(self.cycle.time)
+        prediction_records_next_cycle = self.prediction_service.get_next_cycle_traffic_prediction_by_time(self.cycle.time)
 
         for station_snapshot in self.station_snapshots.values():
             station_id = station_snapshot.station.id
@@ -136,6 +142,13 @@ class Simulator:
             station_snapshot.set_target_bike_count(self.__calculate_station_target_bike_count(station_snapshot))
             station_snapshot.set_next_cycle_target_bike_count(self.__calculate_station_next_cycle_target_bike_count(station_snapshot))
             station_snapshot.set_target_rebalance_bike_count(self.__calculate_target_rebalance_bike_count(station_snapshot))
+
+        actual_incoming = [station_snapshot.actual_incoming_bike_count for station_snapshot in self.station_snapshots.values()]
+        expected_incoming = [station_snapshot.expected_incoming_bike_count for station_snapshot in self.station_snapshots.values()]
+        actual_outgoing = [station_snapshot.actual_outgoing_bike_count for station_snapshot in self.station_snapshots.values()]
+        expected_outgoing = [station_snapshot.expected_outgoing_bike_count for station_snapshot in self.station_snapshots.values()]
+        print_info('Incoming RMSE: {}'.format(round(mean_squared_error(actual_incoming, expected_incoming), 3)))
+        print_info('Outgoing RMSE: {}'.format(round(mean_squared_error(actual_outgoing, expected_outgoing), 3)))
 
         self.cycle.set_lyapunov(self.__calculate_lyapunov())
 
@@ -211,13 +224,12 @@ class Simulator:
             for source_id in sorted_source_ids:
                 destination_rebalance_bike_count = destination_stations[destination_id]['rebalance_bike_count']
                 source_rebalance_bike_count = source_stations[source_id]['rebalance_bike_count']
-                if abs(source_rebalance_bike_count) <= destination_rebalance_bike_count:
-                    rebalanced_bike_count = min(abs(source_rebalance_bike_count), math.floor(budget/cost_per_bike))
-                else:
-                    rebalanced_bike_count = min(destination_rebalance_bike_count, math.floor(budget/cost_per_bike))
-
                 source_available_bike_count = self.station_snapshots[source_id].current_bike_count
-                rebalanced_bike_count = min(rebalanced_bike_count, source_available_bike_count)
+
+                if abs(source_rebalance_bike_count) <= destination_rebalance_bike_count:
+                    rebalanced_bike_count = min(abs(source_rebalance_bike_count), math.floor(budget/cost_per_bike), source_available_bike_count)
+                else:
+                    rebalanced_bike_count = min(destination_rebalance_bike_count, math.floor(budget/cost_per_bike), source_available_bike_count)
 
                 if rebalanced_bike_count != 0:
 

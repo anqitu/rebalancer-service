@@ -14,22 +14,25 @@ PREDICTION_MODE_7DMA = 'Past 7 Days Moving Average'
 PREDICTION_MODE_LSTM = 'LSTM'
 PREDICTION_MODE_GRU = 'GRU'
 PREDICTION_MODE_BI_LSTM = 'Bi-LSTM'
+PREDICTION_MODE_ACTUAL = 'ACTUAL'
 
-START_TIME = datetime(year = 2018, month = 10, day = 1, hour = 0)
-DEFAULT_SETTINGS = Settings(interval_hour = 2, peak_cost = 1, off_peak_cost = 1,
+START_TIME = datetime(year = 2018, month = 10, day = 20, hour = 0)
+DEFAULT_SETTINGS = Settings(interval_hour = 2, peak_cost = 2, off_peak_cost = 1,
                             budget_per_cycle = 1500, cost_coef = 0.2,
                             prediction_mode = PREDICTION_MODE_7DMA)
 MOVING_AVERAGE_DAYS = 7
 
 RESULTS_PATH = 'results'
 check_dir(RESULTS_PATH)
-JOURNEYS_DATA_PATH = 'data/london_journeys_count_with_2h_interval.csv'
-STATIONS_DATA_PATH = 'data/london_stations.json'
+DATA_PATH = 'data'
+JOURNEYS_DATA_PATH = os.path.join(DATA_PATH, 'london_journeys_count_with_2h_interval.csv')
+STATIONS_DATA_PATH = os.path.join(DATA_PATH, 'london_stations.json')
 PREDICTION_DATA_PATHS = {
-    PREDICTION_MODE_7DMA: 'data/london_journeys_predict_with_2h_interval_7DMA.csv',
-    PREDICTION_MODE_LSTM: 'data/london_journeys_predict_with_2h_interval_LSTM.csv',
-    PREDICTION_MODE_GRU: 'data/london_journeys_predict_with_2h_interval_GRU.csv',
-    PREDICTION_MODE_BI_LSTM: 'data/london_journeys_predict_with_2h_interval_Bi-LSTM.csv'
+    PREDICTION_MODE_7DMA: os.path.join(DATA_PATH, 'london_journeys_predict_with_2h_interval_7DMA.csv'),
+    PREDICTION_MODE_LSTM: os.path.join(DATA_PATH, 'london_journeys_predict_with_2h_interval_LSTM.csv'),
+    PREDICTION_MODE_GRU: os.path.join(DATA_PATH, 'london_journeys_predict_with_2h_interval_GRU.csv'),
+    PREDICTION_MODE_BI_LSTM: os.path.join(DATA_PATH, 'london_journeys_predict_with_2h_interval_Bi-LSTM.csv'),
+    PREDICTION_MODE_ACTUAL: os.path.join(DATA_PATH, 'london_journeys_predict_with_2h_interval_actual.csv'),
 }
 
 SETTINGS_UI_MAPPER = {'peak_cost': 'peakCost',

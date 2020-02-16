@@ -13,20 +13,15 @@ class PredictionService:
         self.journeys_predict_df['Hour'] = self.journeys_predict_df['Time'].dt.hour
         # self._make_predictions()
 
-    def get_predict_flow_by_time(self, time):
+    def get_current_cycle_traffic_prediction_by_time(self, time):
 
         records = self.journeys_predict_df[(self.journeys_predict_df['Time'] == time)]
-        records = {row['Station ID']: {'in': int(row['In']), 'out': int(row['Out'])} for index, row in records.iterrows()}
+        records = {row['Station ID']: {'in': int(row['In']), 'out': int(row['Out'])} for index, row in records[records['Lag'] == 0].iterrows()}
         return records
 
-    # def _make_predictions(self):
-    #     print_info("Start making predictions")
-    #
-    #     prediction_in = self.journeys_predict_df.groupby(['Station ID', 'Hour'])[['In']].rolling(window=7).mean()
-    #     prediction_in.index = prediction_in.index.get_level_values(2)
-    #     self.journeys_predict_df['In'] = prediction_in.round(0)
-    #
-    #     prediction_out = self.journeys_predict_df.groupby(['Station ID', 'Hour'])[['Out']].rolling(window=7).mean()
-    #     prediction_out.index = prediction_out.index.get_level_values(2)
-    #     self.journeys_predict_df['Out'] = prediction_out.round(0)
-    #     print_info("Finish making predictions")
+    def get_next_cycle_traffic_prediction_by_time(self, time):
+
+        records = self.journeys_predict_df[(self.journeys_predict_df['Time'] == time)]
+        records = {row['Station ID']: {'in': int(row['In']), 'out': int(row['Out'])} for index, row in records[records['Lag'] == 1].iterrows()}
+
+        return records

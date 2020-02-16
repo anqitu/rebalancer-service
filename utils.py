@@ -22,8 +22,8 @@ def check_dir(directory):
 def save_demand_supply_gap_plot(dir):
 
     results_df = pd.read_csv(os.path.join(dir, 'cycle_results.csv'), parse_dates=['Time'])
-    results_df['Hour'] = results_df['Time'].dt.hour
-    cycles = results_df.shape[0] * 2
+    results_df['Hour'] = results_df['Cycle Count'] * 2
+    hours = results_df.shape[0] * 2
 
     fig = plt.figure(figsize=(12, 8))
     plt.title('Demand-Supply Gap', size=25, pad=20)
@@ -31,15 +31,16 @@ def save_demand_supply_gap_plot(dir):
     plt.plot(results_df['Hour'], results_df['Demand Supply Gap After Rebalance'], marker = 'v', markersize = 12)
     plt.xlabel('Hours in a Day', size=20)
     plt.ylabel('No. of Shareable Bikes', size=20)
-    plt.xticks(size=15, ticks=range(0, cycles, 2))
+    plt.xticks(size=15, ticks=range(0, hours, 2))
     plt.yticks(size=15)
     plt.legend(fontsize=14)
     fig.savefig(os.path.join(dir, 'Demand Supply Gap'), dpi = 200, bbox_inches = 'tight')
+    plt.close()
 
 def save_usage_vs_rebalance_plot(dir):
     results_df = pd.read_csv(os.path.join(dir, 'cycle_results.csv'), parse_dates=['Time'])
-    results_df['Hour'] = results_df['Time'].dt.hour
-    cycles = results_df.shape[0] * 2
+    results_df['Hour'] = results_df['Cycle Count'] * 2
+    hours = results_df.shape[0] * 2
 
     fig = plt.figure(figsize=(12, 8))
     plt.title('Usage vs. Rebalance', size=25, pad=20)
@@ -47,7 +48,8 @@ def save_usage_vs_rebalance_plot(dir):
     plt.plot(results_df['Hour'], results_df['Rebalanced Bikes'], marker = 'v', markersize = 12)
     plt.xlabel('Hours in a Day', size=20)
     plt.ylabel('No. of Shareable Bikes', size=20)
-    plt.xticks(size=15, ticks=range(0, cycles, 2))
+    plt.xticks(size=15, ticks=range(0, hours, 2))
     plt.yticks(size=15)
     plt.legend(fontsize=14)
     fig.savefig(os.path.join(dir, 'Usage vs Rebalance'), dpi = 200, bbox_inches = 'tight')
+    plt.close()
