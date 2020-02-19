@@ -16,7 +16,7 @@ PREDICTION_MODE_GRU = 'GRU'
 PREDICTION_MODE_BI_LSTM = 'Bi-LSTM'
 PREDICTION_MODE_ACTUAL = 'ACTUAL'
 
-START_TIME = datetime(year = 2018, month = 10, day = 20, hour = 0)
+START_TIME = datetime(year = 2018, month = 10, day = 1, hour = 0)
 DEFAULT_SETTINGS = Settings(interval_hour = 2, peak_cost = 2, off_peak_cost = 1,
                             budget_per_cycle = 1500, cost_coef = 0.2,
                             prediction_mode = PREDICTION_MODE_7DMA)

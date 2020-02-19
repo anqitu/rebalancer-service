@@ -38,7 +38,7 @@ class Simulator:
         self.cycle = None
         self.station_snapshots = {station.id: StationSnapshot(station = station) for station in self.stations}
         for station_snapshot in self.station_snapshots.values():
-            station_snapshot.set_initial_available_bike_count(0.7)
+            station_snapshot.set_initial_available_bike_count(0.5)
 
 
     def start_simulation(self):
@@ -156,16 +156,18 @@ class Simulator:
 
 
     def __calculate_station_target_bike_count(self, station_snapshot):
-        return min(station_snapshot.expected_outgoing_bike_count, station_snapshot.station.capacity)
+        return station_snapshot.expected_outgoing_bike_count
+        # return min(station_snapshot.expected_outgoing_bike_count, station_snapshot.station.capacity)
 
     def __calculate_station_next_cycle_target_bike_count(self, station_snapshot):
-        return min(station_snapshot.next_cycle_expected_outgoing_bike_count, station_snapshot.station.capacity)
+        return station_snapshot.next_cycle_expected_outgoing_bike_count
+        # return min(station_snapshot.next_cycle_expected_outgoing_bike_count, station_snapshot.station.capacity)
 
     def __calculate_target_rebalance_bike_count(self, station_snapshot):
         settings = self.settings
         cost_per_bike = settings.peak_cost
         cost_coef = settings.cost_coef
-        target_rebalance_bike_count = math.floor(station_snapshot.next_cycle_target_bike_count \
+        target_rebalance_bike_count = math.floor(min(station_snapshot.next_cycle_target_bike_count, station_snapshot.station.capacity) \
                + station_snapshot.expected_outgoing_bike_count \
                - station_snapshot.available_bike_count_before_rebalance \
                - station_snapshot.expected_incoming_bike_count \
