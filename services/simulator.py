@@ -40,7 +40,6 @@ class Simulator:
         for station_snapshot in self.station_snapshots.values():
             station_snapshot.set_initial_available_bike_count(0.5)
 
-
     def start_simulation(self):
         print_info('Start Simulation')
         self.simulation_start_time = int(time())
@@ -55,7 +54,6 @@ class Simulator:
         self.__update_status(STATUS_START)
 
         self.__set_stations_data()
-        self.cycle.set_demand_supply_gap_before_rebalance()
 
     def next_cycle(self):
         print()
@@ -67,13 +65,12 @@ class Simulator:
         self.__update_status(STATUS_NEXT_CYCLE)
 
         self.__set_stations_data()
-        self.cycle.set_demand_supply_gap_before_rebalance()
 
     def rebalance(self):
         print_info('Start Rebalance')
         self.cycle.set_rebalance_schedules(self.__calculate_rebalance_schedules())
-        self.__set_demand_supply_gap_after_rebalance()
-        self.cycle.set_demand_supply_gap_after_rebalance()
+        self.__set_stations_demand_supply_gap()
+        self.cycle.calculate_demand_supply_gap()
         self.__update_status(STATUS_REBALANCE)
 
     def simulate_rides(self):
@@ -139,29 +136,20 @@ class Simulator:
             station_snapshot.set_next_cycle_expected_incoming_bike_count(prediction_records_next_cycle[station_id]['in'])
             station_snapshot.set_next_cycle_expected_outgoing_bike_count(prediction_records_next_cycle[station_id]['out'])
 
-            station_snapshot.set_target_bike_count(self.__calculate_station_target_bike_count(station_snapshot))
-            station_snapshot.set_next_cycle_target_bike_count(self.__calculate_station_next_cycle_target_bike_count(station_snapshot))
+            station_snapshot.set_target_bike_count(station_snapshot.expected_outgoing_bike_count)
+            station_snapshot.set_next_cycle_target_bike_count(station_snapshot.next_cycle_expected_outgoing_bike_count)
             station_snapshot.set_target_rebalance_bike_count(self.__calculate_target_rebalance_bike_count(station_snapshot))
 
-        actual_incoming = [station_snapshot.actual_incoming_bike_count for station_snapshot in self.station_snapshots.values()]
-        expected_incoming = [station_snapshot.expected_incoming_bike_count for station_snapshot in self.station_snapshots.values()]
-        actual_outgoing = [station_snapshot.actual_outgoing_bike_count for station_snapshot in self.station_snapshots.values()]
-        expected_outgoing = [station_snapshot.expected_outgoing_bike_count for station_snapshot in self.station_snapshots.values()]
-        print_info('Incoming RMSE: {}'.format(round(mean_squared_error(actual_incoming, expected_incoming), 3)))
-        print_info('Outgoing RMSE: {}'.format(round(mean_squared_error(actual_outgoing, expected_outgoing), 3)))
+        # actual_incoming = [station_snapshot.actual_incoming_bike_count for station_snapshot in self.station_snapshots.values()]
+        # expected_incoming = [station_snapshot.expected_incoming_bike_count for station_snapshot in self.station_snapshots.values()]
+        # actual_outgoing = [station_snapshot.actual_outgoing_bike_count for station_snapshot in self.station_snapshots.values()]
+        # expected_outgoing = [station_snapshot.expected_outgoing_bike_count for station_snapshot in self.station_snapshots.values()]
+        # print_info('Incoming RMSE: {}'.format(round(mean_squared_error(actual_incoming, expected_incoming), 3)))
+        # print_info('Outgoing RMSE: {}'.format(round(mean_squared_error(actual_outgoing, expected_outgoing), 3)))
 
         self.cycle.set_lyapunov(self.__calculate_lyapunov())
 
         print_info('Finish setting stations data')
-
-
-    def __calculate_station_target_bike_count(self, station_snapshot):
-        return station_snapshot.expected_outgoing_bike_count
-        # return min(station_snapshot.expected_outgoing_bike_count, station_snapshot.station.capacity)
-
-    def __calculate_station_next_cycle_target_bike_count(self, station_snapshot):
-        return station_snapshot.next_cycle_expected_outgoing_bike_count
-        # return min(station_snapshot.next_cycle_expected_outgoing_bike_count, station_snapshot.station.capacity)
 
     def __calculate_target_rebalance_bike_count(self, station_snapshot):
         settings = self.settings
@@ -173,12 +161,11 @@ class Simulator:
                - station_snapshot.expected_incoming_bike_count \
                - cost_coef * cost_per_bike)
 
-        # target_rebalance_bike_count = max(target_rebalance_bike_count, -1 * station_snapshot.available_bike_count_before_rebalance)
         return target_rebalance_bike_count
 
-    def __set_demand_supply_gap_after_rebalance(self):
+    def __set_stations_demand_supply_gap(self):
         for station_snapshot in self.station_snapshots.values():
-            station_snapshot.calculate_demand_supply_gap_after_rebalance()
+            station_snapshot.calculate_demand_supply_gap()
 
     def __set_stations_available_available_bike_count_after_rides(self):
         for station_snapshot in self.station_snapshots.values():

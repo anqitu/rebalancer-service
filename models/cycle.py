@@ -45,14 +45,6 @@ class Cycle:
         self.cumulative_distance_moved += self.distance_moved
         self.trips_scheduled = len(rebalance_schedules)
 
-    def set_demand_supply_gap_before_rebalance(self):
-        self.demand_supply_gap_before_rebalance = sum([station_snapshot.demand_supply_gap_before_rebalance for station_snapshot in self.station_snapshots if station_snapshot.demand_supply_gap_before_rebalance > 0])
-
-    def set_demand_supply_gap_after_rebalance(self):
-        self.demand_supply_gap_after_rebalance = sum([station_snapshot.demand_supply_gap_after_rebalance for station_snapshot in self.station_snapshots if station_snapshot.demand_supply_gap_after_rebalance > 0])
-        self.demand_supply_gap_decrement = self.demand_supply_gap_before_rebalance - self.demand_supply_gap_after_rebalance
-        self.cumulative_demand_supply_gap_decrement += self.demand_supply_gap_decrement
-
     def set_moved_bike_count(self):
         self.moved_bike_count = sum([station_snapshot.actual_incoming_bike_count for station_snapshot in self.station_snapshots])
         self.cumulative_moved_bike_count += self.moved_bike_count
@@ -62,3 +54,9 @@ class Cycle:
         self.lyapunov_drift = 0 if (self.count == 0) else (self.lyapunov - self.previous_cycle_lyapunov)
         self.cumulative_drift += self.lyapunov_drift
         self.time_avg_cond_drift = 0 if (self.count == 0) else self.cumulative_drift / self.count
+
+    def calculate_demand_supply_gap(self):
+        self.demand_supply_gap_before_rebalance = sum([station_snapshot.demand_supply_gap_before_rebalance for station_snapshot in self.station_snapshots if station_snapshot.demand_supply_gap_before_rebalance > 0])
+        self.demand_supply_gap_after_rebalance = sum([station_snapshot.demand_supply_gap_after_rebalance for station_snapshot in self.station_snapshots if station_snapshot.demand_supply_gap_after_rebalance > 0])
+        self.demand_supply_gap_decrement = self.demand_supply_gap_before_rebalance - self.demand_supply_gap_after_rebalance
+        self.cumulative_demand_supply_gap_decrement += self.demand_supply_gap_decrement
